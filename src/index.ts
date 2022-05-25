@@ -8,6 +8,7 @@ import { Daw } from './controller/Daw';
 import { Phone } from './controller/Phone';
 import { Space } from './dax/Space';
 import * as THREE from 'three'
+import { XRSpace } from './dax/XRSpace';
 
 const controller = new Controller("https://dax-server.michaelpalladino.io")
 
@@ -19,6 +20,7 @@ const orie_button = document.createElement("button");
 orie_button.innerText = "Grant Orientation";
 orie_button.onclick = () => controller.requestPermissionForDeviceOrientationData()
 
+const orientationStatus = document.createElement("h2") // appends later depending on device type
 
 
 // let camera: PerspectiveCamera, soundCamera: PerspectiveCamera, scene: Scene, renderer: WebGLRenderer, mesh: Object3D<Event> | Mesh<ConeGeometry, MeshNormalMaterial>, target: Object3D<Event> | Mesh<SphereGeometry, MeshBasicMaterial>;
@@ -100,25 +102,25 @@ function getBaseQuaternion( alpha: number, beta: number, gamma: number ) {
 	// var _y = gamma ? gamma * degtorad : 0; // gamma value
 	// var _z = alpha ? alpha * degtorad : 0; // alpha value
 
-    var _x = beta - THREE.MathUtils.degToRad(beta)
-    var _y = gamma * THREE.MathUtils.degToRad(gamma)
-    var _z = alpha * THREE.MathUtils.degToRad(alpha)
+    const _x = beta - THREE.MathUtils.degToRad(beta)
+    const _y = gamma * THREE.MathUtils.degToRad(gamma)
+    const _z = alpha * THREE.MathUtils.degToRad(alpha)
 
-	var cX = Math.cos( _x/2 );
-	var cY = Math.cos( _y/2 );
-	var cZ = Math.cos( _z/2 );
-	var sX = Math.sin( _x/2 );
-	var sY = Math.sin( _y/2 );
-	var sZ = Math.sin( _z/2 );
+	const cX = Math.cos( _x/2 );
+	const cY = Math.cos( _y/2 );
+	const cZ = Math.cos( _z/2 );
+	const sX = Math.sin( _x/2 );
+	const sY = Math.sin( _y/2 );
+	const sZ = Math.sin( _z/2 );
 
 	//
 	// ZXY quaternion construction.
 	//
 
-	var w = cX * cY * cZ - sX * sY * sZ;
-	var x = sX * cY * cZ - cX * sY * sZ;
-	var y = cX * sY * cZ + sX * cY * sZ;
-	var z = cX * cY * sZ + sX * sY * cZ;
+	const w = cX * cY * cZ - sX * sY * sZ;
+	const x = sX * cY * cZ - cX * sY * sZ;
+	const y = cX * sY * cZ + sX * cY * sZ;
+	const z = cX * cY * sZ + sX * sY * cZ;
 
 	return [ w, x, y, z ];
 }
@@ -189,12 +191,12 @@ if (!controller.isMobileDevice) {
     const phone = space.phone
     space.phone.control.setMode("rotate")
     space.phone.control.setRotationSnap(THREE.MathUtils.degToRad(15))
-    space.phone.control.space = "local"
+    // space.phone.control.space = "local"
     space.phone.control.showX = true
     space.phone.control.showY = true
     space.phone.control.showX = true
 
-    space.phone.mesh.scale.set(-2, -2, -2)
+    // space.phone.mesh.scale.set(-2, -2, -2)
 
 
     controller.socket.on("device-orientation-data-frame", (orientation: any) => {
@@ -204,10 +206,15 @@ if (!controller.isMobileDevice) {
         const b = computeQuaternion(orientation[0], orientation[1], orientation[2])
 
         
-        // x, y z w
+        // // x, y z w
         const q = new Quaternion().set(b[1], b[2], b[3], b[0])
+        // space.phone.mesh.setRotationFromQuaternion(q)
 
-        space.phone.mesh.quaternion.slerp(q, 0.9)
+        // const rotationMatrix = new Matrix4().makeRotationFromEuler(new Euler(alpha, beta, gamma, "XYZ"))
+
+        space.phone.control.space = "local"
+        space.phone.mesh.rotation.x = beta
+        // space.phone.mesh.setFromEuler(new Euler(orientation[1], orientation[2], orientation[3]))
 
         Space.render(space.renderer, space.scene, space.currentCamera)
     
@@ -249,6 +256,14 @@ if (!controller.isMobileDevice) {
 } else {
     document.body.appendChild(motion_button);
     document.body.appendChild(orie_button)
+
+    const header = document.createElement("h1")
+    header.innerText = "Controller Device"
+    document.body.appendChild(header)
+
+    const xr = new XRSpace()
+
 }
+
 
 

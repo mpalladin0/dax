@@ -27,9 +27,43 @@ export class Controller {
     private deviceMotionPermission: boolean = false
     private deviceOrientationPermission: boolean = false
 
+    public liveHeader = document.createElement("h2")
+    public alphaStatus = document.createElement("p")
+    public betaStatus = document.createElement("p")
+    public gammaStatus = document.createElement("p")
+
+    public processedHeader = document.createElement("h2")
+    public post_alphaStatus = document.createElement("p")
+    public post_betaStatus = document.createElement("p")
+    public post_gammaStatus = document.createElement("p")
+
     public socket: Socket<ServerToClientEvents | any, ClientToServerEvents | any> | undefined;
 
     constructor(DAX_ENPOINT: string) {
+        if (this.isMobileDevice) {
+            this.liveHeader.innerText = "Live: "
+            this.alphaStatus.innerText = "Alpha: -"
+            this.betaStatus.innerText = "Beta: -"
+            this.gammaStatus.innerText = "Gamma: -"
+            document.body.appendChild(this.liveHeader)
+            document.body.appendChild(this.alphaStatus)
+            document.body.appendChild(this.betaStatus)
+            document.body.appendChild(this.gammaStatus)
+    
+            this.processedHeader.innerText = "Post: "
+            document.body.appendChild(this.processedHeader)
+            document.body.appendChild(this.post_alphaStatus)
+            document.body.appendChild(this.post_betaStatus)
+            document.body.appendChild(this.post_gammaStatus)
+        } else {
+            this.processedHeader.innerText = "Post: "
+            document.body.appendChild(this.processedHeader)
+            document.body.appendChild(this.post_alphaStatus)
+            document.body.appendChild(this.post_betaStatus)
+            document.body.appendChild(this.post_gammaStatus)
+        }
+
+
         this.socket = io(DAX_ENPOINT)
 
         this.socket.on("connect", () => {
@@ -39,6 +73,12 @@ export class Controller {
                 this.socket.emit("desktop connection")
             }
             // this.socket.emit("")
+        })
+
+        this.socket.on("device-orientation-data-frame", (orientation: any) => {
+            this.post_alphaStatus.innerText = `\t(around Z) [0, 360] Alpha: ${orientation[0]}`
+            this.post_betaStatus.innerText = ` \t(around X) [-180, 180] Beta: ${orientation[1]}`
+            this.post_gammaStatus.innerText = ` \t(around Y) [-90, 90] Gamma: ${orientation[2]}`
         })
     }
 
@@ -90,6 +130,12 @@ export class Controller {
                                 let alpha = e.alpha
                                 const beta = e.beta
                                 const gamma = e.gamma
+
+                                this.alphaStatus.innerText = `Alpha: ${alpha}`
+                                this.betaStatus.innerText = `Beta: ${beta}`
+                                this.gammaStatus.innerText = `Gamma: ${gamma}`
+                                
+
                                 this.socket.emit("device orientation data", alpha, beta, gamma)
                             })
                         } else {
@@ -112,6 +158,7 @@ export class Controller {
         if (this.deviceOrientationPermission) this.requestPermissionForDeviceMotonData()
         return this.deviceOrientationData
     }
+
 
     // public startCapture = () => {
     //     this.socket.emit("device motion", this.deviceMotionData)
