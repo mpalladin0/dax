@@ -1,12 +1,16 @@
 import * as THREE from "three";
-import { Scene, WebGLRenderer } from "three";
+import { AudioLoader, Scene, WebGLRenderer, AudioListener, PositionalAudio } from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls'
+import { PositionalAudioHelper } from "three/examples/jsm/helpers/PositionalAudioHelper";
 import { Phone } from "./Phone";
 /**
  * https://threejs.org/examples/#misc_controls_transform
  */
 export class Space {
+    delay(delay: any) {
+        throw new Error("Method not implemented.");
+    }
     public renderer: THREE.WebGLRenderer
     public aspect = window.innerWidth/window.innerHeight
     private cameraPersp: THREE.PerspectiveCamera;
@@ -21,6 +25,8 @@ export class Space {
     public control: TransformControls;
     private mesh: THREE.Mesh<THREE.BoxGeometry, THREE.MeshLambertMaterial>;
     public phone: Phone;
+    listener: AudioListener;
+    public sound: THREE.PositionalAudio;
 
     constructor() {
         /** Renderer */
@@ -38,12 +44,12 @@ export class Space {
 
         /** Current Camera */
         this.currentCamera = this.cameraPersp
-        this.currentCamera.position.set(0, 500, 1000)
+        this.currentCamera.position.set(0, 1, 2.5)
         this.currentCamera.lookAt(0, 0, 0)
 
         /** Scene */
         this.scene = new THREE.Scene()
-        this.scene.add(new THREE.GridHelper(1000, 10, 0x888888, 0x444444))
+        this.scene.add(new THREE.GridHelper(1, 100, 0x888888, 0x444444))
 
         /** Directional Light */
         this.light = new THREE.DirectionalLight(0xffffff, 2)
@@ -55,7 +61,7 @@ export class Space {
         this.texture.anisotropy = this.renderer.capabilities.getMaxAnisotropy()
 
         /** Device Geometry */
-        this.geometry = new THREE.BoxGeometry(60, 10, 100)
+        this.geometry = new THREE.BoxGeometry(0.00762, 0.16002, 0.077978)
         this.material = new THREE.MeshLambertMaterial({ map: this.texture, transparent: true })
 
         /** Orbit */
@@ -69,7 +75,7 @@ export class Space {
 
         /** Mesh  */
         this.mesh = new THREE.Mesh(this.geometry, this.material)
-        this.mesh.position.y = 200
+        // this.mesh.position.y = 200
         // this.mesh.rotateY(Math.PI/2)
         // this.phone.mesh.rotateZ(Math.PI/2)
 
@@ -181,7 +187,22 @@ export class Space {
 
         });
 
+
+        this.listener = new AudioListener()
+        this.sound = new PositionalAudio(this.listener)
+        this.phone.mesh.add(this.sound)
+        // this.sound.setDirectionalCone(180, 0, 0.1);
+        // this.sound.setRefDistance(0.01)
+
+        // this.soundHelper = new PositionalAudioHelper(this.sound)
+        // this.sound.add(this.soundHelper)
+
+        // this.phone.mesh.add(this.sound)
+        //
+
     }
+
+
 
     private onWindowResize = () => {
         this.aspect = window.innerWidth/window.innerHeight
@@ -201,6 +222,24 @@ export class Space {
     public static render = (renderer: WebGLRenderer, scene: Scene, currentCamera: THREE.PerspectiveCamera | THREE.OrthographicCamera) => {
         // this.phone.render()
         renderer.render(scene, currentCamera)
+    }
+
+    public startSound = () => {
+        const audioLoader = new AudioLoader();
+    
+        audioLoader.load('/sounds/theappnight.mp3', (buffer) => {
+            console.log("Starting sound...")
+            this.sound.setBuffer(buffer)
+            this.sound.play()
+
+            console.log("Playing:", this.sound.isPlaying)
+    
+            // feedbackDelay.connect(listener.context.destination)
+    
+        })
+    
+    
+    
     }
 }
 
