@@ -50,13 +50,13 @@ export class Controller {
             document.body.appendChild(this.betaStatus)
             document.body.appendChild(this.gammaStatus)
     
-            this.processedHeader.innerText = "Post: "
+            // this.processedHeader.innerText = "Post: "
             document.body.appendChild(this.processedHeader)
             document.body.appendChild(this.post_alphaStatus)
             document.body.appendChild(this.post_betaStatus)
             document.body.appendChild(this.post_gammaStatus)
         } else {
-            this.processedHeader.innerText = "Post: "
+            // this.processedHeader.innerText = "Post: "
             document.body.appendChild(this.processedHeader)
             document.body.appendChild(this.post_alphaStatus)
             document.body.appendChild(this.post_betaStatus)

@@ -1,16 +1,17 @@
 import * as THREE from "three";
-import { AudioLoader, Scene, WebGLRenderer, AudioListener, PositionalAudio } from "three";
+import * as Tone from 'tone'
+import { AudioLoader, Scene, WebGLRenderer, AudioListener, PositionalAudio, Source } from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls'
 import { PositionalAudioHelper } from "three/examples/jsm/helpers/PositionalAudioHelper";
+import { OfflineContext, Reverb, ToneAudioBuffer } from "tone";
 import { Phone } from "./Phone";
+import { PositionalAudioSource } from "./PositionalAudioSource";
 /**
  * https://threejs.org/examples/#misc_controls_transform
  */
 export class Space {
-    delay(delay: any) {
-        throw new Error("Method not implemented.");
-    }
+    buffer: AudioBuffer;
     public renderer: THREE.WebGLRenderer
     public aspect = window.innerWidth/window.innerHeight
     private cameraPersp: THREE.PerspectiveCamera;
@@ -27,6 +28,15 @@ export class Space {
     public phone: Phone;
     listener: AudioListener;
     public sound: THREE.PositionalAudio;
+    secondSound: THREE.PositionalAudio;
+    secondPhone: Phone;
+    secondControl: TransformControls;
+    secondMesh: THREE.Mesh<THREE.BoxGeometry, THREE.MeshLambertMaterial>;
+    biquadFilter: BiquadFilterNode;
+    raycaster: THREE.Raycaster;
+    pointer: THREE.Vector2;
+    sounds: any[];
+
 
     constructor() {
         /** Renderer */
@@ -34,6 +44,8 @@ export class Space {
         this.renderer.setPixelRatio(window.devicePixelRatio)
         this.renderer.setSize(window.innerWidth, window.innerHeight)
         document.body.appendChild(this.renderer.domElement)
+
+        this.sounds = []
 
         /** Perspective Camera */
         this.cameraPersp = new THREE.PerspectiveCamera(50, this.aspect, 0.01, 30000)
@@ -44,12 +56,12 @@ export class Space {
 
         /** Current Camera */
         this.currentCamera = this.cameraPersp
-        this.currentCamera.position.set(0, 1, 2.5)
+        this.currentCamera.position.set(0, 10, 20.5)
         this.currentCamera.lookAt(0, 0, 0)
 
         /** Scene */
         this.scene = new THREE.Scene()
-        this.scene.add(new THREE.GridHelper(1, 100, 0x888888, 0x444444))
+        this.scene.add(new THREE.GridHelper(100, 100, 0x888888, 0x444444))
 
         /** Directional Light */
         this.light = new THREE.DirectionalLight(0xffffff, 2)
@@ -61,7 +73,8 @@ export class Space {
         this.texture.anisotropy = this.renderer.capabilities.getMaxAnisotropy()
 
         /** Device Geometry */
-        this.geometry = new THREE.BoxGeometry(0.00762, 0.16002, 0.077978)
+        // this.geometry = new THREE.BoxGeometry(0.00762, 0.16002, 0.077978)
+        this.geometry = new THREE.BoxGeometry(0.2, 0.2, 0.2)
         this.material = new THREE.MeshLambertMaterial({ map: this.texture, transparent: true })
 
         /** Orbit */
@@ -75,10 +88,7 @@ export class Space {
 
         /** Mesh  */
         this.mesh = new THREE.Mesh(this.geometry, this.material)
-        // this.mesh.position.y = 200
-        // this.mesh.rotateY(Math.PI/2)
-        // this.phone.mesh.rotateZ(Math.PI/2)
-
+    
         /** Phone Controls */
         this.control = new TransformControls(this.currentCamera, this.renderer.domElement)
         this.control.addEventListener('change', () => Space.render(this.renderer, this.scene, this.currentCamera))
@@ -191,16 +201,45 @@ export class Space {
         this.listener = new AudioListener()
         this.sound = new PositionalAudio(this.listener)
         this.phone.mesh.add(this.sound)
-        // this.sound.setDirectionalCone(180, 0, 0.1);
-        // this.sound.setRefDistance(0.01)
 
-        // this.soundHelper = new PositionalAudioHelper(this.sound)
-        // this.sound.add(this.soundHelper)
+        this.sounds.push(this.phone.mesh)
 
-        // this.phone.mesh.add(this.sound)
-        //
+        /** Phone Controls */
+ 
+        this.secondControl = new TransformControls(this.currentCamera, this.renderer.domElement)
+        this.secondControl.addEventListener('change', () => Space.render(this.renderer, this.scene, this.currentCamera))
+        this.secondControl.addEventListener('dragging-changed', (event) => {
+            console.log(event)
+            this.orbit.enabled =! event.value
+        })
 
+        /**
+         * Raycaster to detect when a user clicks a sound
+         * See https://stackoverflow.com/questions/12800150/catch-the-click-event-on-a-specific-mesh-in-the-renderer
+         */
+        this.raycaster = new THREE.Raycaster()
+        this.pointer = new THREE.Vector2()
+        window.addEventListener( 'click', this.onPointerClick );
+        window.addEventListener('pointermove', this.onPointerMove)
     }
+
+    private onPointerClick = (e: PointerEvent) => {
+        // calculate pointer position in normalized device coordinates
+        // (-1 to +1) for both components
+
+        this.pointer.x = ( e.clientX / window.innerWidth ) * 2 - 1;
+        this.pointer.y = - ( e.clientY / window.innerHeight ) * 2 + 1;
+
+        this.raycaster.setFromCamera(this.pointer, this.currentCamera)
+        const intersects = this.raycaster.intersectObjects( this.sounds);
+
+        for (let i = 0; i < intersects.length; i++) {
+            // intersects[i].object.customDistanceMaterial.transparent = false
+            console.log(intersects[i])
+        }
+    }
+
+    private onPointerMove = (e: PointerEvent) => {}
 
 
 
@@ -220,27 +259,93 @@ export class Space {
     } 
     
     public static render = (renderer: WebGLRenderer, scene: Scene, currentCamera: THREE.PerspectiveCamera | THREE.OrthographicCamera) => {
-        // this.phone.render()
         renderer.render(scene, currentCamera)
     }
 
-    public startSound = () => {
-        const audioLoader = new AudioLoader();
-    
-        audioLoader.load('/sounds/theappnight.mp3', (buffer) => {
-            console.log("Starting sound...")
-            this.sound.setBuffer(buffer)
-            this.sound.play()
+    public getFilteredBuffer(buffer: AudioBuffer) {
+        let context = new OfflineAudioContext(buffer.numberOfChannels, buffer.duration*buffer.sampleRate, buffer.sampleRate)
+        Tone.setContext(context)
 
-            console.log("Playing:", this.sound.isPlaying)
-    
-            // feedbackDelay.connect(listener.context.destination)
-    
-        })
-    
-    
+        const source = context.createBufferSource()
+        source.buffer = buffer
+
+        const filter = context.createBiquadFilter()
+        source.connect(filter)
+        filter.connect(context.destination)
+
+        source.start(0)
+
+        return context.startRendering()
     
     }
+
+    // public getFilteredToneBuffer(buffer: AudioBuffer) {
+    //     let context = new Tone.OfflineContext(buffer.numberOfChannels, buffer.duration*buffer.sampleRate, buffer.sampleRate)
+
+    //     const source = context.createBufferSource()
+    //     source.buffer = buffer
+
+    //     new Tone.PitchShift(7).toDestination()
+    //     // pitchShift.connect(context.destination)
+
+    //     source.start(0)
+
+    //     return context.render(true)
+    // }
+
+    // public startSound = () => {
+    //     const audioLoader = new AudioLoader()
+    //     audioLoader.load('/sounds/okalright.mp3', (buffer) => {
+    //         this.getFilteredToneBuffer(buffer).then((renderedBuffer) => {
+    //             const finished = renderedBuffer.get()
+
+    //             renderedBuffer.onload = () => {
+    //                 this.sound.setBuffer(finished)
+    //                 this.sound.play()
+    //             }
+
+    //         })
+        
+    //     })
+
+    // }
+
+    public startSound = () => {
+        const audioLoader = new AudioLoader()
+
+        audioLoader.load('/sounds/streetcar.mp3', (buffer) => {
+            this.sound.setBuffer(buffer)
+            const bufferSource = this.sound.context.createBufferSource()
+            bufferSource.buffer = buffer
+
+            this.biquadFilter = this.sound.context.createBiquadFilter()
+            this.biquadFilter.type = "lowpass"
+            this.biquadFilter.frequency.setValueAtTime(1000, this.sound.context.currentTime)
+            this.biquadFilter.gain.setValueAtTime(25, this.sound.context.currentTime);
+
+            this.biquadFilter.connect(bufferSource.context.destination)
+
+            this.sound.play(0.01)
+
+        })
+
+
+    }
+
+
+    // public startSound = () => {      
+    //     const audioLoader = new AudioLoader()
+    //     const bufferSource = this.sound.context.createBufferSource()
+
+    //     const biquadFilter = bufferSource.context.createBiquadFilter()
+    //     biquadFilter.type = "lowpass"
+    //     biquadFilter.frequency.setValueAtTime(1000, bufferSource.context.currentTime)
+    //     biquadFilter.gain.setValueAtTime(25, bufferSource.context.currentTime);
+        
+    //     biquadFilter.connect(bufferSource.context.destination)
+
+
+    // }
 }
 
 
