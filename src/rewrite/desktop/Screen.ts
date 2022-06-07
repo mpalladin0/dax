@@ -89,6 +89,8 @@ export class Screen {
                 20,
               )
 
+            //   this.renderer.setAnimationLoop(this.render)
+
             // /** Replace later with CURRENT Sounds */
             // const boxGeometry = new THREE.BoxBufferGeometry(0.2, 0.2, 0.2);
             // const boxMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });

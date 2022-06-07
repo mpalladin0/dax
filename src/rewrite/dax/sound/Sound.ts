@@ -10,10 +10,8 @@ import { TransformControls } from "three/examples/jsm/controls/TransformControls
 import { createAudio } from "./createAudio"
 import { createDisplay } from "./createDisplay"
 
-// import { Connection } from "../../../dax/Connection";
-// import { SoundDisplay } from "./SoundDisplay";
-// import { SoundPlayer } from "./SoundPlayer";
-// import * as THREE from 'three'
+import { SoundDisplay } from "./SoundDisplay";
+import { SoundPlayer } from "./SoundPlayer";
 
 // export class Sound {
 //     private readonly listener: THREE.AudioListener
@@ -241,7 +239,7 @@ import { createDisplay } from "./createDisplay"
 type Mode = "XR" | "DESKTOP"
 
 
-export class Sound{
+export class Sound {
     public  name: string
     public  url: string
     public  mode: Mode
@@ -263,7 +261,6 @@ export class Sound{
         this.display = createDisplay(this.audio, scene)
 
         this.positionalAudioHelper = new PositionalAudioHelper(this.audio)
-
 
     }
 

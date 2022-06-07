@@ -1,3 +1,4 @@
+const Dotenv = require('dotenv-webpack');
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin')
@@ -40,7 +41,8 @@ module.exports = {
         { from: 'src/sounds', to: 'sounds' }, 
         { from: 'src/models', to: 'models' },
         { from: 'src/textures', to: 'textures' },
-      ] })
+      ] }),
+    new Dotenv(), 
   ],
   resolve: {
     extensions: ['.tsx', '.ts', '.js'],

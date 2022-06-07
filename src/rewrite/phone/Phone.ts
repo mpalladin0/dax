@@ -6,6 +6,7 @@ import * as THREE from 'three'
 // import { Color, Vector3 } from "three";
 
 import { Sound } from "../dax/sound/Sound"
+import { Screen } from "../desktop/Screen";
 
 // export class Phone {
 //     public readonly connection: Connection
@@ -309,17 +310,20 @@ export class Phone {
     private selectedSound: Sound = null
 
     /** Scene Helpers */
-    private readonly scene = new THREE.Scene()
+    // private readonly scene = new THREE.Scene()
     private readonly connection
+    screen: Screen;
     
     constructor(connection: Connection) {
         this.connection = connection
+
+        this.screen = new Screen(true)
 
         connection.socket.on("sound selected from desktop", this.onSoundSelectedFromDesktop)
     }
 
     public readonly addSound = (name: string, url: string) => {
-        const sound = new Sound(name, url, "XR", this.scene, this.connection)
+        const sound = new Sound(name, url, "XR", this.screen.scene, this.connection)
         this.sounds.set(name, sound)
 
         return sound

@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import { Controller } from './controller/Controller';
 // import {  AudioListener, AudioLoader, BoxHelper, Clock, ConeGeometry, Euler, Event, Material, Matrix3, Matrix4, Mesh, MeshBasicMaterial, MeshNormalMaterial, Object3D, PerspectiveCamera, PositionalAudio, Quaternion, Scene, Sphere, SphereGeometry, Spherical, Vector3, WebGLRenderer } from 'three';
 import { PositionalAudioHelper } from 'three/examples/jsm/helpers/PositionalAudioHelper.js';
@@ -9,6 +8,9 @@ import { Space } from './dax/Space';
 import * as THREE from 'three'
 import { XRSpace } from './dax/XRSpace';
 import { Connection } from './dax/Connection';
+import { Desktop } from './rewrite/desktop/Desktop';
+import { Phone } from './rewrite/phone/Phone';
+import { Sound } from './rewrite/dax/sound/Sound';
 // import { Desktop } from './rewrite/desktop/Desktop';
 // import * as TempPhone from './phone/Phone';
 // import { DaxSpace } from './dax/DaxSpace';
@@ -64,12 +66,11 @@ orie_button.onclick = () => controller.requestPermissionForDeviceOrientationData
 
 
 // // // generateRandomStartingPosition();
+// console.log(process.env.SERVER_URL)
+// const connection = new Connection(process.env.SERVER_URL)
+// // // // console.log(connection)
 
-const connection = new Connection("https://dax-server.michaelpalladino.io")
-// // // console.log(connection)
-
-
-if (!connection.isMobile) {
+if (!controller.isMobileDevice) {
     const space = new Space()
     space.sound.setDistanceModel('inverse')
     space.sound.setRefDistance(1)
@@ -84,7 +85,7 @@ if (!connection.isMobile) {
     const helper = new PositionalAudioHelper(space.sound)
     space.phone.mesh.add(helper)
 
-    connection.socket.on("sound placement from server", (position: any) => {
+    controller.socket.on("sound placement from server", (position: any) => {
         const newPosition = new THREE.Vector3(position.x, position.y, position.z)
 
         const distanceFromOrigin = newPosition.distanceTo(new THREE.Vector3(0,0,0))
@@ -142,8 +143,9 @@ if (!connection.isMobile) {
 
 }
 
+// const connection = new Connection("https://dax-server.michaelpalladino.io")
 
-// // if (connection.isMobile) new Desktop(connection)
+// if (connection.isMobile) new Phone(connection)
 
 // if (connection.isDesktop) {
 //     const desktop = new Desktop(connection)
@@ -153,7 +155,7 @@ if (!connection.isMobile) {
 //     // const vocals = desktop.addSound("https://dax.michaelpalladino.io/sounds/beatles/back_vocals.mp3", "vocals")
 
 
-//     const alright = desktop.addSound("https://dax.michaelpalladino.io/sounds/alright.mp3", "alright")
+//     const alright = desktop.addSound("alright", "https://dax.michaelpalladino.io/sounds/alright.mp3")
 //     const sounds = [alright]
 
 //     function setInitialPosition(x: number, y: number, z: number, sound: Sound) {
@@ -161,42 +163,42 @@ if (!connection.isMobile) {
 //     }
 
 //     // setInitialPosition(-1, 1, -1, guitar)
-//     // setInitialPosition(0, 0.5, -1, vocals)
+//     setInitialPosition(0, 0.5, -1, alright)
 //     // setInitialPosition(1, 1, -1, drums)
 
-//     setInitialPosition(0, 0, 0, alright)
-//     // setInitialPosition(0, 0, 0, vocals)
-//     // setInitialPosition(0, 0, 0, drums)
+//     // setInitialPosition(0, 0, 0, alright)
+//     // // setInitialPosition(0, 0, 0, vocals)
+//     // // setInitialPosition(0, 0, 0, drums)
 
 
 //     function createSelect(sound: Sound) {
 //         const button = document.createElement("button")
-//         button.innerText = `Select ${sound.name}`
+//         button.innerText = `Select ${sound}`
 //         button.onclick = () => { desktop.selectSound(sound) }
         
 //         return button
 //     }
 
-//     function createOrbit(sound: Sound) {
-//         const button = document.createElement("button")
-//         button.innerText = `Orbit ${sound.name}`
-//         button.onclick = () => {
-//             function orbit() {
-//                 const time = performance.now() * 0.0003
-//                 const x = Math.sin(time * 3.7)
-//                 const y = 1
-//                 const z = Math.cos(time * 1.5)
-//                 sound.setPos(x, y, z)
-//             }
+//     // function createOrbit(sound: Sound) {
+//     //     const button = document.createElement("button")
+//     //     button.innerText = `Orbit ${sound.name}`
+//     //     button.onclick = () => {
+//     //         function orbit() {
+//     //             const time = performance.now() * 0.0003
+//     //             const x = Math.sin(time * 3.7)
+//     //             const y = 1
+//     //             const z = Math.cos(time * 1.5)
+//     //             sound.setPos(x, y, z)
+//     //         }
 
-//             orbit()
-//             desktop.screen.renderer.setAnimationLoop(orbit)
-//         }
+//     //         orbit()
+//     //         desktop.screen.renderer.setAnimationLoop(orbit)
+//     //     }
 
-//         document.body.appendChild(button)
+//     //     document.body.appendChild(button)
 
-//         return button
-//     }
+//     //     return button
+//     // }
 
 
 //     // 0, -1, 2
@@ -274,15 +276,15 @@ if (!connection.isMobile) {
 
 // }
 
-// if (connection.isMobile) {
-//     const phone = new Phone(connection)
+// // if (connection.isMobile) {
+// //     const phone = new Phone(connection)
 
-//     const requestDeviceOrientation = document.createElement("button")
-//     requestDeviceOrientation.innerText = "Grant Orientation"
-//     requestDeviceOrientation.onclick = phone.connection.requestDeviceOrientation
-//     document.body.appendChild(requestDeviceOrientation)
+// //     const requestDeviceOrientation = document.createElement("button")
+// //     requestDeviceOrientation.innerText = "Grant Orientation"
+// //     requestDeviceOrientation.onclick = phone.connection.requestDeviceOrientation
+// //     document.body.appendChild(requestDeviceOrientation)
 
-// }
+// // }
 
 
 

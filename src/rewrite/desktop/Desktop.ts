@@ -1,6 +1,7 @@
 import { Connection } from "../../dax/Connection";
 import * as THREE from 'three'
 import { Sound } from "../dax/sound/Sound";
+import { Screen } from "./Screen";
 // import { Screen } from "./Screen";
 // import { Sound } from "../dax/sound/Sound";
 // import { TransformControls } from "three/examples/jsm/controls/TransformControls";
@@ -115,25 +116,27 @@ export class Desktop {
     private selectedSound: Sound = null
 
     /** Scene Helpers */
-    private readonly scene = new THREE.Scene()
+    // private readonly scene = new THREE.Scene()
     private readonly connection
+    screen: Screen;
     
     constructor(connection: Connection) {
         this.connection = connection
+        this.screen = new Screen(false)
 
         connection.socket.on("sound selected from phone", (name: string) => this.onSoundSelectedFromPhone)
     }
 
     public readonly addSound = (name: string, url: string) => {
-        const sound = new Sound(name, url, "DESKTOP", this.scene, this.connection)
+        const sound = new Sound(name, url, "DESKTOP", this.screen.scene, this.connection)
         this.sounds.set(name, sound)
 
         return sound
     }
     public readonly removeSound = (sound: Sound) => {}
 
-    public readonly selectSound = (name: string) => {
-        const selection = this.sounds.get(name)
+    public readonly selectSound = (sound: Sound) => {
+        const selection = this.sounds.get(sound.name)
         if (selection) this.selectedSound = selection
 
         this.connection.socket.emit("sound selected from desktop", this.selectedSound.name)

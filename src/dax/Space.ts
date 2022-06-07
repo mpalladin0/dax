@@ -313,7 +313,8 @@ export class Space {
     public startSound = () => {
         const audioLoader = new AudioLoader()
 
-        audioLoader.load('/sounds/streetcar.mp3', (buffer) => {
+
+        audioLoader.load(`/sounds/alright.mp3`, (buffer) => {
             this.sound.setBuffer(buffer)
             const bufferSource = this.sound.context.createBufferSource()
             bufferSource.buffer = buffer
