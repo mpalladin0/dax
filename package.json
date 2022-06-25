@@ -37,4 +37,5 @@
     "three": "^0.140.0",
     "three-orbit-controls": "^82.1.0",
     "typescript": "^4.6.4"
+  }
 }
