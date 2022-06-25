@@ -1,5 +1,8 @@
 node_modules/
 dist/
+dist
+dist/*
 daxjs.code-workspace
 .parcel-cache
 .env
+.vercel
