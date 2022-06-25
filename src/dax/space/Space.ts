@@ -36,7 +36,6 @@ export class Space {
   pointer: THREE.Vector2;
   sounds: any[];
   sound: Sound;
-  public readonly soundController: SoundController;
 
   constructor({ connection }: { connection: Connection }) {
     /** Renderer */
