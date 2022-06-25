@@ -15,7 +15,7 @@ interface ClientToServerEvents {
  */
 export class Connection extends EventDispatcher {
     public socket: Socket<ServerToClientEvents | any, ClientToServerEvents | any> | undefined;
-    private deviceType: Mobile | Desktop
+    // private deviceType: Mobile | Desktop
 
     constructor(url: string) {
         super()
@@ -29,77 +29,77 @@ export class Connection extends EventDispatcher {
         })
     }
 
-    public requestDeviceMotion(): void {}
+    // public requestDeviceMotion(): void {}
 
-    public requestDeviceOrientation() {
-        console.log("[Controller] Requesting permission for device orientation data.")
-        // @ts-ignore
-        if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-            try {
-                // @ts-ignore
-                DeviceOrientationEvent.requestPermission()
-                    .then((permissionState: string) => {
-                        if (permissionState === 'granted') {
-                            console.log("[Controller] Permission granted: orientation data.")
+    // public requestDeviceOrientation() {
+    //     console.log("[Controller] Requesting permission for device orientation data.")
+    //     // @ts-ignore
+    //     if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+    //         try {
+    //             // @ts-ignore
+    //             DeviceOrientationEvent.requestPermission()
+    //                 .then((permissionState: string) => {
+    //                     if (permissionState === 'granted') {
+    //                         console.log("[Controller] Permission granted: orientation data.")
 
-                            window.addEventListener('deviceorientation', (e) => {
-                                    const alpha = e.alpha
-                                    const beta = e.beta
-                                    const gamma = e.gamma
+    //                         window.addEventListener('deviceorientation', (e) => {
+    //                                 const alpha = e.alpha
+    //                                 const beta = e.beta
+    //                                 const gamma = e.gamma
 
-                                    const orientationPayload = {
-                                        alpha,
-                                        beta,
-                                        gamma
-                                    }
+    //                                 const orientationPayload = {
+    //                                     alpha,
+    //                                     beta,
+    //                                     gamma
+    //                                 }
 
 
-                                this.dispatchEvent({ type: 'orientationData', orientationPayload })
+    //                             this.dispatchEvent({ type: 'orientationData', orientationPayload })
 
-                                // See https://www.w3.org/2008/geolocation/wiki/images/e/e0/Device_Orientation_%27alpha%27_Calibration-_Implementation_Status_and_Challenges.pdf
+    //                             // See https://www.w3.org/2008/geolocation/wiki/images/e/e0/Device_Orientation_%27alpha%27_Calibration-_Implementation_Status_and_Challenges.pdf
                                 
-                                // @ts-ignore
-                                // const initialOffset = e.webkitCompassHeading
+    //                             // @ts-ignore
+    //                             // const initialOffset = e.webkitCompassHeading
 
 
-                                // this.alphaStatus.innerText = `Alpha: ${alpha}`
-                                // this.betaStatus.innerText = `Beta: ${beta}`
-                                // this.gammaStatus.innerText = `Gamma: ${gamma}`
+    //                             // this.alphaStatus.innerText = `Alpha: ${alpha}`
+    //                             // this.betaStatus.innerText = `Beta: ${beta}`
+    //                             // this.gammaStatus.innerText = `Gamma: ${gamma}`
                                 
 
-                                // this.socket.emit("device orientation data", alpha, beta, gamma)
-                            })
-                        } else {
-                            throw new Error(permissionState);
-                        }
-                    })
-                    .catch((err: any) => console.error(err))
-            } catch (err) {
-                throw new Error(err)
-            }
-        }
-    }
+    //                             // this.socket.emit("device orientation data", alpha, beta, gamma)
+    //                         })
+    //                     } else {
+    //                         throw new Error(permissionState);
+    //                     }
+    //                 })
+    //                 .catch((err: any) => console.error(err))
+    //         } catch (err) {
+    //             throw new Error(err)
+    //         }
+    //     }
+    // }
 
     private onMobileConnection() {
-        this.deviceType = 'Mobile'
+        // this.deviceType = 'Mobile'
 
         this.socket.emit("mobile connection")
         console.log("Mobile connection established.")
     }
     private onDesktopConnection() {
-        this.deviceType = 'Desktop'
+        // this.deviceType = 'Desktop'
 
         this.socket.emit("desktop connection")
         console.log("Desktop connection established")
     }
 
-    public sendMobile(event: MobileToServer) {
-        if (!this.isMobile) throw new Error(`Cannot send a mobile command as ${this.deviceType}`)
-    }
+    // public sendMobile(event: MobileToServer) {
+    //     if (!this.isMobile) throw new Error(`Cannot send a mobile command as ${this.deviceType}`)
+    // }
 
-    public sendDesktop(event: DesktopToServer) {
-        if (!this.isDesktop) throw new Error(`Cannot send a desktop command as ${this.deviceType}`)
-    }
+    // public sendDesktop(event: DesktopToServer) {
+    //     if (!this.isDesktop) throw new Error(`Cannot send a desktop command as ${this.deviceType}`)
+    // }
 
 
     public get isMobile() {

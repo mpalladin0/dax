@@ -39,7 +39,6 @@ module.exports = {
     new CopyWebpackPlugin({ patterns: 
       [
         { from: 'src/sounds', to: 'sounds' }, 
-        { from: 'src/models', to: 'models' },
         { from: 'src/textures', to: 'textures' },
       ] }),
     new Dotenv(), 

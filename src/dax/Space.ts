@@ -1,355 +1,391 @@
 import * as THREE from "three";
-import * as Tone from 'tone'
-import { AudioLoader, Scene, WebGLRenderer, AudioListener, PositionalAudio, Source } from "three";
+import {
+  AudioListener,
+  AudioLoader,
+  PositionalAudio,
+  Scene,
+  WebGLRenderer,
+} from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-import { TransformControls } from 'three/examples/jsm/controls/TransformControls'
-import { PositionalAudioHelper } from "three/examples/jsm/helpers/PositionalAudioHelper";
-import { OfflineContext, Reverb, ToneAudioBuffer } from "tone";
+import { TransformControls } from "three/examples/jsm/controls/TransformControls";
+import * as Tone from "tone";
 import { Phone } from "./Phone";
-import { PositionalAudioSource } from "./PositionalAudioSource";
 /**
  * https://threejs.org/examples/#misc_controls_transform
  */
 export class Space {
-    buffer: AudioBuffer;
-    public renderer: THREE.WebGLRenderer
-    public aspect = window.innerWidth/window.innerHeight
-    private cameraPersp: THREE.PerspectiveCamera;
-    private cameraOrtho: THREE.OrthographicCamera;
-    public currentCamera: THREE.PerspectiveCamera | THREE.OrthographicCamera;
-    public scene: THREE.Scene;
-    private light: THREE.DirectionalLight;
-    private texture: THREE.Texture;
-    private geometry: THREE.BoxGeometry;
-    private material: THREE.MeshLambertMaterial;
-    private orbit: OrbitControls;
-    public control: TransformControls;
-    private mesh: THREE.Mesh<THREE.BoxGeometry, THREE.MeshLambertMaterial>;
-    public phone: Phone;
-    listener: AudioListener;
-    public sound: THREE.PositionalAudio;
-    secondSound: THREE.PositionalAudio;
-    secondPhone: Phone;
-    secondControl: TransformControls;
-    secondMesh: THREE.Mesh<THREE.BoxGeometry, THREE.MeshLambertMaterial>;
-    biquadFilter: BiquadFilterNode;
-    raycaster: THREE.Raycaster;
-    pointer: THREE.Vector2;
-    sounds: any[];
+  buffer: AudioBuffer;
+  public renderer: THREE.WebGLRenderer;
+  public aspect = window.innerWidth / window.innerHeight;
+  private cameraPersp: THREE.PerspectiveCamera;
+  private cameraOrtho: THREE.OrthographicCamera;
+  public currentCamera: THREE.PerspectiveCamera | THREE.OrthographicCamera;
+  public scene: THREE.Scene;
+  private light: THREE.DirectionalLight;
+  private texture: THREE.Texture;
+  private geometry: THREE.BoxGeometry;
+  private material: THREE.MeshLambertMaterial;
+  private orbit: OrbitControls;
+  public control: TransformControls;
+  private mesh: THREE.Mesh<THREE.BoxGeometry, THREE.MeshLambertMaterial>;
+  public phone: Phone;
+  listener: AudioListener;
+  public sound: THREE.PositionalAudio;
+  secondSound: THREE.PositionalAudio;
+  secondPhone: Phone;
+  secondControl: TransformControls;
+  secondMesh: THREE.Mesh<THREE.BoxGeometry, THREE.MeshLambertMaterial>;
+  biquadFilter: BiquadFilterNode;
+  raycaster: THREE.Raycaster;
+  pointer: THREE.Vector2;
+  sounds: any[];
 
+  constructor() {
+    /** Renderer */
+    this.renderer = new THREE.WebGLRenderer();
+    this.renderer.setPixelRatio(window.devicePixelRatio);
+    this.renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(this.renderer.domElement);
 
-    constructor() {
-        /** Renderer */
-        this.renderer = new THREE.WebGLRenderer()
-        this.renderer.setPixelRatio(window.devicePixelRatio)
-        this.renderer.setSize(window.innerWidth, window.innerHeight)
-        document.body.appendChild(this.renderer.domElement)
+    this.sounds = [];
 
-        this.sounds = []
+    /** Perspective Camera */
+    this.cameraPersp = new THREE.PerspectiveCamera(
+      50,
+      this.aspect,
+      0.01,
+      30000
+    );
 
-        /** Perspective Camera */
-        this.cameraPersp = new THREE.PerspectiveCamera(50, this.aspect, 0.01, 30000)
+    /** Othorg Camera */
+    // this.cameraOrtho = new THREE.OrthographicCamera(-600 * this.aspect, 600 * this.aspect, 600, -600, 0.01, 30000)
+    this.cameraOrtho = new THREE.OrthographicCamera();
 
-        /** Othorg Camera */
-        // this.cameraOrtho = new THREE.OrthographicCamera(-600 * this.aspect, 600 * this.aspect, 600, -600, 0.01, 30000)
-        this.cameraOrtho = new THREE.OrthographicCamera()
+    /** Current Camera */
+    this.currentCamera = this.cameraPersp;
+    this.currentCamera.position.set(0, 10, 20.5);
+    this.currentCamera.lookAt(0, 0, 0);
 
-        /** Current Camera */
-        this.currentCamera = this.cameraPersp
-        this.currentCamera.position.set(0, 10, 20.5)
-        this.currentCamera.lookAt(0, 0, 0)
+    /** Scene */
+    this.scene = new THREE.Scene();
+    this.scene.add(new THREE.GridHelper(100, 100, 0x888888, 0x444444));
 
-        /** Scene */
-        this.scene = new THREE.Scene()
-        this.scene.add(new THREE.GridHelper(100, 100, 0x888888, 0x444444))
+    /** Directional Light */
+    this.light = new THREE.DirectionalLight(0xffffff, 2);
+    this.light.position.set(1, 1, 1);
+    this.scene.add(this.light);
 
-        /** Directional Light */
-        this.light = new THREE.DirectionalLight(0xffffff, 2)
-        this.light.position.set(1, 1, 1)
-        this.scene.add(this.light)
+    /** Device Texture */
+    this.texture = new THREE.TextureLoader().load(
+      "/assets/textures/crate.gif",
+      () => Space.render(this.renderer, this.scene, this.currentCamera)
+    );
+    this.texture.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
 
-        /** Device Texture */
-        this.texture = new THREE.TextureLoader().load('/textures/crate.gif', () => Space.render(this.renderer, this.scene, this.currentCamera))
-        this.texture.anisotropy = this.renderer.capabilities.getMaxAnisotropy()
+    /** Device Geometry */
+    // this.geometry = new THREE.BoxGeometry(0.00762, 0.16002, 0.077978)
+    this.geometry = new THREE.BoxGeometry(0.2, 0.2, 0.2);
+    this.material = new THREE.MeshLambertMaterial({
+      map: this.texture,
+      transparent: true,
+    });
 
-        /** Device Geometry */
-        // this.geometry = new THREE.BoxGeometry(0.00762, 0.16002, 0.077978)
-        this.geometry = new THREE.BoxGeometry(0.2, 0.2, 0.2)
-        this.material = new THREE.MeshLambertMaterial({ map: this.texture, transparent: true })
+    /** Orbit */
+    this.orbit = new OrbitControls(
+      this.currentCamera,
+      this.renderer.domElement
+    );
 
-        /** Orbit */
-        this.orbit = new OrbitControls(this.currentCamera, this.renderer.domElement)
+    this.orbit.update();
+    this.orbit.addEventListener("change", () =>
+      Space.render(this.renderer, this.scene, this.currentCamera)
+    );
 
-        this.orbit.update()
-        this.orbit.addEventListener('change', () => Space.render(this.renderer, this.scene, this.currentCamera))
+    /** Create Phone and add to Space */
 
+    /** Mesh  */
+    this.mesh = new THREE.Mesh(this.geometry, this.material);
 
-        /** Create Phone and add to Space */
+    /** Phone Controls */
+    this.control = new TransformControls(
+      this.currentCamera,
+      this.renderer.domElement
+    );
+    this.control.addEventListener("change", () =>
+      Space.render(this.renderer, this.scene, this.currentCamera)
+    );
+    this.control.addEventListener("dragging-changed", (event) => {
+      console.log(event);
+      this.orbit.enabled = !event.value;
+    });
 
-        /** Mesh  */
-        this.mesh = new THREE.Mesh(this.geometry, this.material)
-    
-        /** Phone Controls */
-        this.control = new TransformControls(this.currentCamera, this.renderer.domElement)
-        this.control.addEventListener('change', () => Space.render(this.renderer, this.scene, this.currentCamera))
-        this.control.addEventListener('dragging-changed', (event) => {
-            console.log(event)
-            this.orbit.enabled =! event.value
-        })
+    this.phone = new Phone(
+      this.scene,
+      this.mesh,
+      this.control,
+      this.renderer,
+      this.currentCamera
+    );
 
-        this.phone = new Phone(this.scene, this.mesh, this.control, this.renderer, this.currentCamera)
+    /** Handle window resize event */
+    window.addEventListener("reset", this.onWindowResize);
+    window.addEventListener("keydown", (event) => {
+      switch (event.keyCode) {
+        case 81: // Q
+          this.control.setSpace(
+            this.control.space === "local" ? "world" : "local"
+          );
+          break;
 
-        /** Handle window resize event */
-        window.addEventListener('reset', this.onWindowResize)
-        window.addEventListener('keydown', (event) => {
-            switch ( event.keyCode ) {
+        case 16: // Shift
+          this.control.setTranslationSnap(100);
+          this.control.setRotationSnap(THREE.MathUtils.degToRad(15));
+          this.control.setScaleSnap(0.25);
+          break;
 
-                case 81: // Q
-                    this.control.setSpace(this.control.space === 'local' ? 'world' : 'local' );
-                    break;
+        case 87: // W
+          this.control.setMode("translate");
+          break;
 
-                case 16: // Shift
-                    this.control.setTranslationSnap( 100 );
-                    this.control.setRotationSnap( THREE.MathUtils.degToRad( 15 ) );
-                    this.control.setScaleSnap( 0.25 );
-                    break;
+        case 69: // E
+          this.control.setMode("rotate");
+          break;
 
-                case 87: // W
-                    this.control.setMode( 'translate' );
-                    break;
+        case 82: // R
+          this.control.setMode("scale");
+          break;
 
-                case 69: // E
-                    this.control.setMode( 'rotate' );
-                    break;
+        case 67: // C
+          const position = this.currentCamera.position.clone();
 
-                case 82: // R
-                    this.control.setMode( 'scale' );
-                    break;
+          this.currentCamera = this.currentCamera.isCamera
+            ? this.cameraOrtho
+            : this.cameraPersp;
+          this.currentCamera.position.copy(position);
 
-                case 67: // C
-                    const position = this.currentCamera.position.clone();
+          this.orbit.object = this.currentCamera;
+          this.control.camera = this.currentCamera;
 
-                    this.currentCamera = this.currentCamera.isCamera ? this.cameraOrtho : this.cameraPersp;
-                    this.currentCamera.position.copy(position);
+          this.currentCamera.lookAt(
+            this.orbit.target.x,
+            this.orbit.target.y,
+            this.orbit.target.z
+          );
+          this.onWindowResize();
+          break;
 
-                    this.orbit.object = this.currentCamera;
-                    this.control.camera = this.currentCamera;
+        case 86: // V
+          const randomFoV = Math.random() + 0.1;
+          const randomZoom = Math.random() + 0.1;
 
-                    this.currentCamera.lookAt(this.orbit.target.x, this.orbit.target.y, this.orbit.target.z)
-                    this.onWindowResize();
-                    break;
+          this.cameraPersp.fov = randomFoV * 160;
+          this.cameraOrtho.bottom = -randomFoV * 500;
+          this.cameraOrtho.top = randomFoV * 500;
 
-                case 86: // V
-                    const randomFoV = Math.random() + 0.1;
-                    const randomZoom = Math.random() + 0.1;
+          this.cameraPersp.zoom = randomZoom * 5;
+          this.cameraOrtho.zoom = randomZoom * 5;
+          this.onWindowResize();
+          break;
 
-                    this.cameraPersp.fov = randomFoV * 160;
-                    this.cameraOrtho.bottom = - randomFoV * 500;
-                    this.cameraOrtho.top = randomFoV * 500;
+        case 187:
+        case 107: // +, =, num+
+          this.control.setSize(this.control.size + 0.1);
+          break;
 
-                    this.cameraPersp.zoom = randomZoom * 5;
-                    this.cameraOrtho.zoom = randomZoom * 5;
-                    this.onWindowResize();
-                    break;
+        case 189:
+        case 109: // -, _, num-
+          this.control.setSize(Math.max(this.control.size - 0.1, 0.1));
+          break;
 
-                case 187:
-                case 107: // +, =, num+
-                    this.control.setSize( this.control.size + 0.1 );
-                    break;
+        case 88: // X
+          this.control.showX = !this.control.showX;
+          break;
 
-                case 189:
-                case 109: // -, _, num-
-                    this.control.setSize( Math.max( this.control.size - 0.1, 0.1 ) );
-                    break;
+        case 89: // Y
+          this.control.showY = !this.control.showY;
+          break;
 
-                case 88: // X
-                    this.control.showX = ! this.control.showX;
-                    break;
+        case 90: // Z
+          this.control.showZ = !this.control.showZ;
+          break;
 
-                case 89: // Y
-                    this.control.showY = ! this.control.showY;
-                    break;
+        case 32: // Spacebar
+          this.control.enabled = !this.control.enabled;
+          break;
 
-                case 90: // Z
-                    this.control.showZ = ! this.control.showZ;
-                    break;
+        case 27: // Esc
+          this.control.reset();
+          break;
+      }
+    });
+    window.addEventListener("keyup", (event) => {
+      switch (event.keyCode) {
+        case 16: // Shift
+          this.control.setTranslationSnap(null);
+          this.control.setRotationSnap(null);
+          this.control.setScaleSnap(null);
+          break;
+      }
+    });
 
-                case 32: // Spacebar
-                    this.control.enabled = ! this.control.enabled;
-                    break;
+    this.listener = new AudioListener();
+    this.sound = new PositionalAudio(this.listener);
+    this.phone.mesh.add(this.sound);
 
-                case 27: // Esc
-                    this.control.reset();
-                    break;
+    this.sounds.push(this.phone.mesh);
 
-            }
-        })
-        window.addEventListener('keyup', (event) => {
+    /** Phone Controls */
 
-            switch ( event.keyCode ) {
-                case 16: // Shift
-                    this.control.setTranslationSnap( null );
-                    this.control.setRotationSnap( null );
-                    this.control.setScaleSnap( null );
-                    break;
+    this.secondControl = new TransformControls(
+      this.currentCamera,
+      this.renderer.domElement
+    );
+    this.secondControl.addEventListener("change", () =>
+      Space.render(this.renderer, this.scene, this.currentCamera)
+    );
+    this.secondControl.addEventListener("dragging-changed", (event) => {
+      console.log(event);
+      this.orbit.enabled = !event.value;
+    });
 
-            }
+    /**
+     * Raycaster to detect when a user clicks a sound
+     * See https://stackoverflow.com/questions/12800150/catch-the-click-event-on-a-specific-mesh-in-the-renderer
+     */
+    this.raycaster = new THREE.Raycaster();
+    this.pointer = new THREE.Vector2();
+    window.addEventListener("click", this.onPointerClick);
+    window.addEventListener("pointermove", this.onPointerMove);
+  }
 
-        });
+  private onPointerClick = (e: PointerEvent) => {
+    // calculate pointer position in normalized device coordinates
+    // (-1 to +1) for both components
 
+    this.pointer.x = (e.clientX / window.innerWidth) * 2 - 1;
+    this.pointer.y = -(e.clientY / window.innerHeight) * 2 + 1;
 
-        this.listener = new AudioListener()
-        this.sound = new PositionalAudio(this.listener)
-        this.phone.mesh.add(this.sound)
+    this.raycaster.setFromCamera(this.pointer, this.currentCamera);
+    const intersects = this.raycaster.intersectObjects(this.sounds);
 
-        this.sounds.push(this.phone.mesh)
-
-        /** Phone Controls */
- 
-        this.secondControl = new TransformControls(this.currentCamera, this.renderer.domElement)
-        this.secondControl.addEventListener('change', () => Space.render(this.renderer, this.scene, this.currentCamera))
-        this.secondControl.addEventListener('dragging-changed', (event) => {
-            console.log(event)
-            this.orbit.enabled =! event.value
-        })
-
-        /**
-         * Raycaster to detect when a user clicks a sound
-         * See https://stackoverflow.com/questions/12800150/catch-the-click-event-on-a-specific-mesh-in-the-renderer
-         */
-        this.raycaster = new THREE.Raycaster()
-        this.pointer = new THREE.Vector2()
-        window.addEventListener( 'click', this.onPointerClick );
-        window.addEventListener('pointermove', this.onPointerMove)
+    for (let i = 0; i < intersects.length; i++) {
+      // intersects[i].object.customDistanceMaterial.transparent = false
+      console.log(intersects[i]);
     }
+  };
 
-    private onPointerClick = (e: PointerEvent) => {
-        // calculate pointer position in normalized device coordinates
-        // (-1 to +1) for both components
+  private onPointerMove = (e: PointerEvent) => {};
 
-        this.pointer.x = ( e.clientX / window.innerWidth ) * 2 - 1;
-        this.pointer.y = - ( e.clientY / window.innerHeight ) * 2 + 1;
+  private onWindowResize = () => {
+    this.aspect = window.innerWidth / window.innerHeight;
 
-        this.raycaster.setFromCamera(this.pointer, this.currentCamera)
-        const intersects = this.raycaster.intersectObjects( this.sounds);
+    this.cameraPersp.aspect = this.aspect;
+    this.cameraPersp.updateProjectionMatrix();
 
-        for (let i = 0; i < intersects.length; i++) {
-            // intersects[i].object.customDistanceMaterial.transparent = false
-            console.log(intersects[i])
-        }
-    }
+    this.cameraOrtho.left = this.cameraOrtho.bottom * this.aspect;
+    this.cameraOrtho.right = this.cameraOrtho.top * this.aspect;
+    this.cameraOrtho.updateProjectionMatrix();
 
-    private onPointerMove = (e: PointerEvent) => {}
+    this.renderer.setSize(window.innerWidth, window.innerHeight);
 
+    Space.render(this.renderer, this.scene, this.currentCamera);
+  };
 
+  public static render = (
+    renderer: WebGLRenderer,
+    scene: Scene,
+    currentCamera: THREE.PerspectiveCamera | THREE.OrthographicCamera
+  ) => {
+    renderer.render(scene, currentCamera);
+  };
 
-    private onWindowResize = () => {
-        this.aspect = window.innerWidth/window.innerHeight
+  public getFilteredBuffer(buffer: AudioBuffer) {
+    let context = new OfflineAudioContext(
+      buffer.numberOfChannels,
+      buffer.duration * buffer.sampleRate,
+      buffer.sampleRate
+    );
+    Tone.setContext(context);
 
-        this.cameraPersp.aspect = this.aspect;
-        this.cameraPersp.updateProjectionMatrix();
+    const source = context.createBufferSource();
+    source.buffer = buffer;
 
-        this.cameraOrtho.left = this.cameraOrtho.bottom * this.aspect;
-        this.cameraOrtho.right = this.cameraOrtho.top * this.aspect;
-        this.cameraOrtho.updateProjectionMatrix();
+    const filter = context.createBiquadFilter();
+    source.connect(filter);
+    filter.connect(context.destination);
 
-        this.renderer.setSize( window.innerWidth, window.innerHeight );
+    source.start(0);
 
-        Space.render(this.renderer, this.scene, this.currentCamera)
-    } 
-    
-    public static render = (renderer: WebGLRenderer, scene: Scene, currentCamera: THREE.PerspectiveCamera | THREE.OrthographicCamera) => {
-        renderer.render(scene, currentCamera)
-    }
+    return context.startRendering();
+  }
 
-    public getFilteredBuffer(buffer: AudioBuffer) {
-        let context = new OfflineAudioContext(buffer.numberOfChannels, buffer.duration*buffer.sampleRate, buffer.sampleRate)
-        Tone.setContext(context)
+  // public getFilteredToneBuffer(buffer: AudioBuffer) {
+  //     let context = new Tone.OfflineContext(buffer.numberOfChannels, buffer.duration*buffer.sampleRate, buffer.sampleRate)
 
-        const source = context.createBufferSource()
-        source.buffer = buffer
+  //     const source = context.createBufferSource()
+  //     source.buffer = buffer
 
-        const filter = context.createBiquadFilter()
-        source.connect(filter)
-        filter.connect(context.destination)
+  //     new Tone.PitchShift(7).toDestination()
+  //     // pitchShift.connect(context.destination)
 
-        source.start(0)
+  //     source.start(0)
 
-        return context.startRendering()
-    
-    }
+  //     return context.render(true)
+  // }
 
-    // public getFilteredToneBuffer(buffer: AudioBuffer) {
-    //     let context = new Tone.OfflineContext(buffer.numberOfChannels, buffer.duration*buffer.sampleRate, buffer.sampleRate)
+  // public startSound = () => {
+  //     const audioLoader = new AudioLoader()
+  //     audioLoader.load('/sounds/okalright.mp3', (buffer) => {
+  //         this.getFilteredToneBuffer(buffer).then((renderedBuffer) => {
+  //             const finished = renderedBuffer.get()
 
-    //     const source = context.createBufferSource()
-    //     source.buffer = buffer
+  //             renderedBuffer.onload = () => {
+  //                 this.sound.setBuffer(finished)
+  //                 this.sound.play()
+  //             }
 
-    //     new Tone.PitchShift(7).toDestination()
-    //     // pitchShift.connect(context.destination)
+  //         })
 
-    //     source.start(0)
+  //     })
 
-    //     return context.render(true)
-    // }
+  // }
 
-    // public startSound = () => {
-    //     const audioLoader = new AudioLoader()
-    //     audioLoader.load('/sounds/okalright.mp3', (buffer) => {
-    //         this.getFilteredToneBuffer(buffer).then((renderedBuffer) => {
-    //             const finished = renderedBuffer.get()
+  public startSound = () => {
+    const audioLoader = new AudioLoader();
 
-    //             renderedBuffer.onload = () => {
-    //                 this.sound.setBuffer(finished)
-    //                 this.sound.play()
-    //             }
+    audioLoader.load(`/assets/sounds/alright.mp3`, (buffer) => {
+      console.log("Buffer loaded.");
+      this.sound.setBuffer(buffer);
+      //   const bufferSource = this.sound.context.createBufferSource();
+      //   bufferSource.buffer = buffer;
 
-    //         })
-        
-    //     })
+      //   this.biquadFilter = this.sound.context.createBiquadFilter();
+      //   this.biquadFilter.type = "lowpass";
+      //   this.biquadFilter.frequency.setValueAtTime(
+      //     1000,
+      //     this.sound.context.currentTime
+      //   );
+      //   this.biquadFilter.gain.setValueAtTime(25, this.sound.context.currentTime);
 
-    // }
+      //   this.biquadFilter.connect(bufferSource.context.destination);
 
-    public startSound = () => {
-        const audioLoader = new AudioLoader()
+      this.sound.play();
+    });
+  };
 
+  // public startSound = () => {
+  //     const audioLoader = new AudioLoader()
+  //     const bufferSource = this.sound.context.createBufferSource()
 
-        audioLoader.load(`/sounds/alright.mp3`, (buffer) => {
-            this.sound.setBuffer(buffer)
-            const bufferSource = this.sound.context.createBufferSource()
-            bufferSource.buffer = buffer
+  //     const biquadFilter = bufferSource.context.createBiquadFilter()
+  //     biquadFilter.type = "lowpass"
+  //     biquadFilter.frequency.setValueAtTime(1000, bufferSource.context.currentTime)
+  //     biquadFilter.gain.setValueAtTime(25, bufferSource.context.currentTime);
 
-            this.biquadFilter = this.sound.context.createBiquadFilter()
-            this.biquadFilter.type = "lowpass"
-            this.biquadFilter.frequency.setValueAtTime(1000, this.sound.context.currentTime)
-            this.biquadFilter.gain.setValueAtTime(25, this.sound.context.currentTime);
+  //     biquadFilter.connect(bufferSource.context.destination)
 
-            this.biquadFilter.connect(bufferSource.context.destination)
-
-            this.sound.play(0.01)
-
-        })
-
-
-    }
-
-
-    // public startSound = () => {      
-    //     const audioLoader = new AudioLoader()
-    //     const bufferSource = this.sound.context.createBufferSource()
-
-    //     const biquadFilter = bufferSource.context.createBiquadFilter()
-    //     biquadFilter.type = "lowpass"
-    //     biquadFilter.frequency.setValueAtTime(1000, bufferSource.context.currentTime)
-    //     biquadFilter.gain.setValueAtTime(25, bufferSource.context.currentTime);
-        
-    //     biquadFilter.connect(bufferSource.context.destination)
-
-
-    // }
+  // }
 }
-
-
 
 // export class Dax {
 //     camera: PerspectiveCamera;
@@ -378,7 +414,7 @@ export class Space {
 //     private animate = () => {
 //         requestAnimationFrame(this.animate)
 //         const time = performance.now() * 0.0003
-//         this.renderer.render(this.scene, this.camera); 
+//         this.renderer.render(this.scene, this.camera);
 //     }
 // }
 // import { AudioListener, AudioLoader, BoxBufferGeometry, BoxHelper, BufferGeometry, Color, Event, Line, LineBasicMaterial, Mesh, MeshBasicMaterial, MeshStandardMaterial, Object3D, PerspectiveCamera, PositionalAudio, Scene, Sphere, SphereGeometry, Vector3, Vector4, WebGLRenderer } from "three"
@@ -396,7 +432,7 @@ export class Space {
 //     points: any[]
 //     line
 //     listener: AudioListener
-//     listenerBox: Object3D<Event> | Mesh<BoxBufferGeometry, MeshStandardMaterial>     
+//     listenerBox: Object3D<Event> | Mesh<BoxBufferGeometry, MeshStandardMaterial>
 //     renderer
 
 //     /**
@@ -474,8 +510,6 @@ export class Space {
 //         material.opacity = 0.5
 //         material.transparent = true
 //         const sphere = new Mesh(geometry, material)
-        
-
 
 //         this.scene.add(sphere)
 //         return vector
@@ -499,7 +533,6 @@ export class Space {
 //         this.sound.position.y = -y
 //         this.sound.position.z = z
 
-
 //         this.sound.lookAt(this.listener.position)
 
 //         // const material = new LineBasicMaterial( { color: 0x0000ff })
@@ -508,7 +541,7 @@ export class Space {
 //         // this.line = new Line(geometry, material)
 
 //         this.soundHelper.update()
-//         this.renderer.render(this.scene, this.camera); 
+//         this.renderer.render(this.scene, this.camera);
 //     }
 
 //     private onWindowResize = () => {
@@ -519,7 +552,7 @@ export class Space {
 
 //     public startSound = () => {
 //         const audioLoader = new AudioLoader();
-    
+
 //         audioLoader.load('/sounds/whiteferrari.mp3', (buffer) => {
 //             console.log("Starting sound...")
 //             const sourceNode = this.sound.context.createBufferSource();
@@ -539,18 +572,14 @@ export class Space {
 //             console.log(this.sound)
 //             console.log(this.delay)
 //             console.log("Playing:", this.sound.isPlaying)
-    
+
 //             // feedbackDelay.connect(listener.context.destination)
-    
+
 //         })
-    
-    
-    
+
 //     }
-    
+
 // }
-
-
 
 // // import { AdditiveBlending, AudioListener, Box3, Box3Helper, BoxGeometry, BoxHelper, BufferGeometry, CameraHelper, Color, DirectionalLight, EdgesGeometry, Event, Float32BufferAttribute, GridHelper, Group, HemisphereLight, Line, LineSegments, MathUtils, Mesh, MeshBasicMaterial, Object3D, PerspectiveCamera, PointLight, PointLightHelper, PolarGridHelper, PositionalAudio, Scene, SphereGeometry, sRGBEncoding, Vector3, WebGLRenderer, WireframeGeometry } from "three";
 // // import { NRRDLoader } from 'three/examples/jsm/loaders/NRRDLoader';
@@ -562,7 +591,6 @@ export class Space {
 // // import { Listener } from "tone";
 // // import { DaxListener } from "./DaxListener";
 // // import { PositionalAudioSource } from "./PositionalAudioSource";
-
 
 // // const r = 800 // radius
 // // const rHalf = r/2; // half rafdius
@@ -612,7 +640,6 @@ export class Space {
 
 // //         this._setupLight(true)
 
-
 // //         const gridHelper = new GridHelper(800, 80, 0x0000ff, 0x808080)
 // //         gridHelper.position.y = -150
 // //         this.scene.add(gridHelper)
@@ -623,7 +650,6 @@ export class Space {
 // //         const loader = new GLTFLoader()
 // //         loader.load('/models/LeePerrySmith.glb', (gltf) => {
 
-
 // //             // this.mesh = gltf.scene.children[0]
 
 // //             // @ts-ignore
@@ -631,7 +657,7 @@ export class Space {
 // //             // @ts-ignore
 // //             const geometry = gltf.scene.children[0].geometry
 // //             geometry.computeTangents()
- 
+
 // //             console.log(mesh)
 
 // //             this.group = new Group()
@@ -666,16 +692,12 @@ export class Space {
 
 // //             this.scene.add(new BoxHelper(this.group))
 // //             this.scene.add(new BoxHelper(this.scene))
-        
 
 // //         })
 
 // //         this._setupPositionalAudio()
 
-
-
 // //         window.addEventListener( 'resize', this.onWindowResize );
-
 
 // //         this.animate()
 
@@ -721,7 +743,6 @@ export class Space {
 
 // //         geometry.setAttribute( 'position', new Float32BufferAttribute( vertices, 3 ) );
 
-
 // //         this.listener.position.setY(80)
 
 // //         this.lightHelper.attach(new PositionalAudio(this.listener))
@@ -731,7 +752,7 @@ export class Space {
 // //         this.light = new PointLight()
 // //         this.light.position.set(200, 100, 150)
 // //         this.scene.add(this.light)
-        
+
 // //         if (helperEnabled) {
 // //             this.lightHelper = new PointLightHelper(this.light, 15)
 // //             this.scene.add(this.lightHelper)
@@ -760,11 +781,9 @@ export class Space {
 // //         // box.applyMatrix4(geometry.p)
 // //     }
 
-
 // //     private animate = () => {
 // //         // console.log("Animating")
 // //         requestAnimationFrame(this.animate)
-        
 
 // //         const time = performance.now() * 0.0003
 // //         this.camera.position.x = 700 * Math.cos(time)
@@ -786,10 +805,8 @@ export class Space {
 // //         this.listener.children[0].rotateY(Math.sin(time * 1.5) * 2000)
 // //         // this.listener.children[0].position.z = Math.sin(time * 1.3) * 150;
 
-
 // //         if (this.vnh) this.vnh.update()
 // //         if (this.vth) this.vth.update()
-
 
 // //         this.cameraPerspective.fov = 35 + 30 * Math.sin( 0.5 * r );
 // //         this.cameraPerspective.far = this.perspectiveMesh.position.length();
@@ -798,7 +815,6 @@ export class Space {
 // //         this.cameraPerspectiveHelper.update()
 // //         this.cameraPerspectiveHelper.visible = true;
 
-
 // //         this.cameraRig.lookAt(this.perspectiveMesh.position)
 // //         this.renderer.clear()
 
@@ -806,9 +822,6 @@ export class Space {
 // //     }
 
 // // }
-
-
-
 
 // // // // import { Controller } from "../controller/Controller";
 
@@ -838,7 +851,6 @@ export class Space {
 // // //     // cubeGeo = new BoxGeometry(50, 50, 50)
 // // //     // cubeMaterial = new MeshBasicMaterial({ color: 0xff0000, opacity: 0.5, transparent: true })
 
-
 // // //     // //
 // // //     // raycaster = new Raycaster()
 // // //     // pointer = new Vector2()
@@ -847,7 +859,6 @@ export class Space {
 
 // // //     // plane: Object3D<Event> | Mesh<PlaneGeometry, MeshBasicMaterial>;
 // // //     // isShiftDown = false
-    
 
 // // //     // // lights
 // // //     // ambientLight = new AmbientLight(0x606060)
@@ -858,7 +869,7 @@ export class Space {
 // // //     constructor() {
 // // //         this.init()
 // // //         this.render()
-    
+
 // // //     }
 
 // // //     private init = () => {
@@ -947,7 +958,6 @@ export class Space {
 // // //     }
 
 // // //     private render = () => this.renderer.render(this.scene, this.camera)
-    
 
 // // //     private onPointerMove = (e: PointerEvent) => {
 // // //         // figure out what this does
@@ -1021,5 +1031,4 @@ export class Space {
 // // //         this.render()
 // // //     }
 
- 
 // // // }

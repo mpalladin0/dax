@@ -25,13 +25,6 @@ export class Phone {
         this.renderer = renderer
         this.currentCamera = currentCamera
 
-        /** Control Event Listeners */
-        // this.control.addEventListener('change', this.render)
     }
-
-    // public render = () => {
-    //     console.log("Running render...")
-    //     this.renderer.render(this.scene, this.currentCamera)
-    // }
 
 }

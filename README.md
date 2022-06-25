@@ -54,7 +54,7 @@
   <summary>Table of Contents</summary>
   <ol>
     <li>
-      <a href="#about-the-project">About The Project</a>
+      <a href="#about-the-project">About DAX</a>
       <ul>
         <li><a href="#built-with">Built With</a></li>
       </ul>
@@ -78,11 +78,13 @@
 
 
 <!-- ABOUT THE PROJECT -->
-## About The Project
+## About DAX
 
 [![Product Name Screen Shot][product-screenshot]](https://example.com)
 
-Here's a blank template to get started: To avoid retyping too much info. Do a search and replace with your text editor for the following: `github_username`, `repo_name`, `twitter_handle`, `linkedin_username`, `email_client`, `email`, `project_title`, `project_description`
+Spacial (or 3D) audio is a group of sound effects that manipulate the sound produced by stereo speakers, surround-sound speakers, speaker-arrays, or headphones. This frequently involves the virtual placement of sound sources anywhere in three-dimensional space, including behind, above or below the listener. [(Wikipedia)](https://en.wikipedia.org/wiki/3D_audio_effect)
+
+DAX uses the postion of your phone to automate these manipulations, with the end result being audio seemingly sounding like it's coming from your phone! [Checkout the Demo video for an example]()
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
