@@ -8,12 +8,15 @@ import {
   Scene,
   WebGLRenderer,
 } from "three";
-import { Connection } from "../cleanup/Connection";
+import { Controller } from "../controller/Controller";
 
-export function createXrScene(renderer: WebGLRenderer, connection: Connection) {
+export function createScene(
+  renderer: WebGLRenderer,
+  masterController: Controller
+) {
   const scene = new Scene();
 
-  connection.socket.emit("screen tap");
+  masterController.socket.emit("screen tap");
 
   const camera = new PerspectiveCamera(
     70,
@@ -42,20 +45,33 @@ export function createXrScene(renderer: WebGLRenderer, connection: Connection) {
   const sound = new PositionalAudio(listener);
   box.add(sound);
 
+  // let r_x = 0;
+  // let r_y = 0;
+  // let r_z = 0;
+
+  // window.addEventListener('deviceorientation', (e) => {
+  //     r_x = THREE.MathUtils.degToRad(e.alpha)
+  //     r_y = THREE.MathUtils.degToRad(e.beta)
+  //     r_z = THREE.MathUtils.degToRad(e.gamma)
+  // })
+
   let selected = false;
 
   controller.addEventListener("selectstart", () => {
-    connection.socket.emit("screen tap", "Finger on screen");
+    masterController.socket.emit("screen tap", "Finger on screen");
     selected = true;
   });
 
   controller.addEventListener("selectend", () => {
-    connection.socket.emit("screen tap", "Finger off screen");
+    masterController.socket.emit("screen tap", "Finger off screen");
     selected = false;
   });
 
   // // Render loop
   function renderLoop(timestamp: number, frame?: XRFrame) {
+    // box.rotation.y += 0.01;
+    // box.rotation.x += 0.01;
+
     // Only render content if XR view is presenting.
     if (renderer.xr.isPresenting) {
       if (selected) {
@@ -77,7 +93,7 @@ export function createXrScene(renderer: WebGLRenderer, connection: Connection) {
           r_z: box.rotation.z,
         };
 
-        connection.socket.emit(
+        masterController.socket.emit(
           "sound placement from controller",
           boxPositionPaylaod
         );

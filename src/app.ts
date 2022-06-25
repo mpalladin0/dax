@@ -1,21 +1,13 @@
 import * as THREE from "three";
 import { PositionalAudioHelper } from "three/examples/jsm/helpers/PositionalAudioHelper.js";
 import { Connection } from "./cleanup/Connection";
-import { XRSpace } from "./controller/XRSpace";
-import { Space } from "./dax/Space";
+import { Space } from "./dax/space/Space";
+import { XRSpace } from "./dax/XRSpace";
 
 const connection = new Connection("https://dax-server.michaelpalladino.io");
-// if (connection.isDesktop) {
-//   const desktop = createDesktop(connection);
-//   desktop.addSound(
-//     "alright",
-//     "https://dax.michaelpalladino.io/sounds/alright.mp3"
-//   );
-// }
-// if (connection.isMobile) createMobile(connection);
 
-if (!connection.isMobile) {
-  const space = new Space();
+if (connection.isDesktop) {
+  const space = new Space({ connection });
   space.sound.setDistanceModel("inverse");
   space.sound.setRefDistance(1);
   space.control.showX = true;
@@ -45,7 +37,6 @@ if (!connection.isMobile) {
       space.phone.mesh.position.x = position.x * 10;
       space.phone.mesh.position.y = position.y * 10;
       space.phone.mesh.position.z = position.z * 10;
-      space.sound.setDetune(0);
       space.sound.setDirectionalCone(90, 120, 0.1);
     }
 
@@ -59,12 +50,15 @@ if (!connection.isMobile) {
   start_button.innerText = "Start";
   document.body.appendChild(start_button);
   start_button.onclick = (e) => {
-    space.startSound();
+    space.sound.play();
   };
   document.body.appendChild(start_button);
-} else {
+}
+
+if (connection.isMobile) {
   const header = document.createElement("h1");
-  header.innerText = "Controller Device";
+  header.innerText = `Controller Device`;
+
   document.body.appendChild(header);
 
   new XRSpace(connection);
