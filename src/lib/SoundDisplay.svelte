@@ -23,34 +23,35 @@
 	//     sound.play();
 	//   };
 
-	const origin = new THREE.Vector3(0, -1, 0);
+	const origin = new THREE.Vector3(0, 0, 0);
 	const newPosition = new THREE.Vector3(0, 0, 0);
 
 	connection.socket.on('sound placement from server', (position: any) => {
+		if (!sound) throw new Error('Sound not found.');
 		console.log(position);
-		newPosition.set(position.x, position.y - 1, position.z);
+		newPosition.set(position.x, position.y, position.z);
 		// const newPosition = new THREE.Vector3(position.x, position.y, position.z);
 
 		const distanceFromOrigin = newPosition.distanceTo(origin);
 
 		if (distanceFromOrigin < 0.1) {
 			//     // sound.posotion.x = position.x * 10
-			space.phone.mesh.position.x = 0;
-			space.phone.mesh.position.y = 0;
-			space.phone.mesh.position.z = 0;
+			space.mesh.position.x = 0;
+			space.mesh.position.y = 0;
+			space.mesh.position.z = 0;
 			sound.setDirectionalCone(360, 360, 0.1);
 
 			//   space.camera.position.x = 0;
 			//   space.camera.position.y = 0;
 			//   space.camera.position.z = 0;
 		} else {
-			space.phone.mesh.position.x = position.x * 10;
-			space.phone.mesh.position.y = position.y * 10;
-			space.phone.mesh.position.z = position.z * 10;
+			space.mesh.position.x = position.x * 10;
+			space.mesh.position.y = position.y * 10;
+			space.mesh.position.z = position.z * 10;
 			sound.setDirectionalCone(90, 120, 0.1);
 		}
 
-		space.phone.mesh.lookAt(origin);
+		space.mesh.lookAt(origin);
 		space.light.lookAt(origin);
 		helper.update();
 	});
@@ -59,7 +60,7 @@
 
 	connection.socket.on('xr active', (socketId: string) => {
 		space.orbit.autoRotate = false;
-		space.phone.mesh.add(helper);
+		space.mesh.add(helper);
 		countdown();
 	});
 

@@ -25,6 +25,7 @@ export const makeHumanModel = ({ scene }: { scene: THREE.Scene }) => {
 	loader.load('assets/models/LeePerrySmith.glb', (gltf) => {
 		const mesh = gltf.scene.children[0];
 		group.scale.multiplyScalar(0.5);
+
 		scene.add(group);
 		group.updateMatrixWorld(true);
 
@@ -35,6 +36,11 @@ export const makeHumanModel = ({ scene }: { scene: THREE.Scene }) => {
 		line.material.opacity = 0.05;
 		line.position.x = 4;
 		group.add(line);
+
+		line.rotateY(THREE.MathUtils.degToRad(180));
+
+		// scene.add(new THREE.BoxHelper(group));
+		// scene.add(new THREE.BoxHelper(scene));
 	});
 
 	group.position.setY(-0.9);

@@ -1,7 +1,6 @@
-import * as THREE from "three";
+import * as THREE from 'three';
 export const makeScene = () => {
-  const scene = new THREE.Scene();
-  scene.position.setY(-1);
+	const scene = new THREE.Scene();
 
-  return scene;
+	return scene;
 };

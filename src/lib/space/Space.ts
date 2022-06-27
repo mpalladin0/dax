@@ -1,19 +1,16 @@
 import * as THREE from 'three';
-import { AudioListener } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls.js';
 import type { Connection } from '../Connection';
-import { Phone } from '../phone/Phone';
+// import { Phone } from '../phone/Phone';
 import { Coordinator } from './cordinator/Coordinator';
 import { makeCamera, type Camera } from './makeCamera';
-import { makeGeometry } from './makeGeometry';
 import { makeHumanModel } from './makeHumanModel';
-import { makeMaterial } from './makeMaterial';
-import { makeMesh } from './makeMesh';
 import { makeRenderer } from './makeRenderer';
 import { makeScene } from './makeScene';
 import { makeTexture } from './makeTexture';
 import { daxrender } from './render';
+import { makeSoundMesh } from './sound/makeSoundMesh';
 /**
  * https://threejs.org/examples/#misc_controls_transform
  */
@@ -25,25 +22,27 @@ export class Space {
 	public scene: THREE.Scene;
 	public light: THREE.DirectionalLight;
 	private texture: THREE.Texture;
-	private geometry: THREE.BoxGeometry;
-	private material: THREE.MeshLambertMaterial;
+	// private geometry: THREE.BoxGeometry;
+	// private material: THREE.MeshLambertMaterial;
 	public orbit: OrbitControls;
 	public control: TransformControls;
-	private mesh: THREE.Mesh<THREE.BoxGeometry, THREE.MeshLambertMaterial>;
-	public phone: Phone;
-	listener: AudioListener;
+	// private mesh: THREE.Mesh<THREE.BoxGeometry, THREE.MeshBasicMaterial>;
+	// public phone: Phone;
+	listener: THREE.AudioListener;
 	raycaster: THREE.Raycaster;
 	pointer: THREE.Vector2;
 	sounds: any[];
 	coordinator: Coordinator;
 	domElement: HTMLCanvasElement;
 	cameraStaringPosition: THREE.Quaternion;
-	cameraStartingEuler: THREE.Euler;
-	currentCameraEuler: THREE.Euler;
+	private readonly cameraStartingEuler: THREE.Euler;
+	private readonly currentCameraEuler!: THREE.Euler;
 	currentCameraQ: THREE.Quaternion;
 	phoneXrActive: boolean;
 	setHumanModelOpacity: (amount: number) => void;
 	origin: THREE.Vector3;
+	mesh: THREE.Mesh<THREE.BoxGeometry, THREE.MeshBasicMaterial>;
+	// soundMesh: THREE.Mesh<THREE.BoxGeometry, THREE.MeshBasicMaterial>;
 
 	constructor({ connection }: { connection: Connection }) {
 		/** Renderer */
@@ -101,10 +100,10 @@ export class Space {
 
 		/** Device Geometry */
 		// this.geometry = new THREE.BoxGeometry(0.00762, 0.16002, 0.077978)
-		this.geometry = makeGeometry();
-		this.material = makeMaterial({
-			texture: this.texture
-		});
+		// this.geometry = makeGeometry();
+		// this.material = makeMaterial({
+		// 	texture: this.texture
+		// });
 
 		/** Orbit */
 		this.orbit = new OrbitControls(this.camera, this.renderer.domElement);
@@ -128,10 +127,12 @@ export class Space {
 		/** Create Phone and add to Space */
 
 		/** Mesh  */
-		this.mesh = makeMesh({
-			geometry: this.geometry,
-			material: this.material
-		});
+		// this.mesh = makeMesh({
+		// 	geometry: this.geometry,
+		// 	material: this.material
+		// });
+
+		// this.mesh = makeSoundMesh();
 
 		/** Phone Controls */
 		this.control = new TransformControls(this.camera, this.renderer.domElement);
@@ -150,7 +151,7 @@ export class Space {
 			this.orbit.enabled = !event.value;
 		});
 
-		this.phone = new Phone(this.scene, this.mesh, this.control, this.renderer, this.camera);
+		// this.phone = new Phone(this.scene, sound.mesh, this.control, this.renderer, this.camera);
 
 		window.addEventListener('resize', this.onWindowResize);
 
@@ -234,7 +235,7 @@ export class Space {
 			}
 		});
 
-		this.listener = new AudioListener();
+		this.listener = new THREE.AudioListener();
 		// this.sound = new Sound({
 		//   name: "alright",
 		//   url: "/sounds/alright.mp3",
@@ -250,8 +251,15 @@ export class Space {
 			name: 'alright',
 			url: 'alright.mp3'
 		});
-		this.phone.mesh.add(sound);
-		this.sounds.push(this.phone.mesh);
+
+		// this.scene.add(sound);
+
+		this.mesh = makeSoundMesh();
+		this.mesh.add(sound);
+
+		this.scene.add(this.mesh);
+		// this.phone.mesh.add(sound);
+		// this.sounds.push(this.phone.mesh);
 
 		connection.socket.on('play sound', () => {
 			sound.play();
@@ -287,7 +295,7 @@ export class Space {
 		this.orbit.update();
 		this.renderer.render(this.scene, this.camera);
 		if (this.phoneXrActive) {
-			this.camera.position.lerp(new THREE.Vector3(0, 2.5, 8.5), 0.01);
+			this.camera.position.lerp(new THREE.Vector3(0, 2.5, 8.5), 0.02);
 		}
 		window.requestAnimationFrame(this.renderLoop);
 	};
