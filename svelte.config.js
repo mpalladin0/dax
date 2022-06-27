@@ -12,13 +12,8 @@ const config = {
 	},
 	files: {
 		asserts: 'static'
-	},
-	  server: {
-    port: 1234,
-  },
-  preview: {
-    port: 1234,
-  },
+	}
+	
 };
 
 export default config;

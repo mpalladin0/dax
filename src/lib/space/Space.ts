@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { AudioListener } from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import { TransformControls } from 'three/examples/jsm/controls/TransformControls';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { TransformControls } from 'three/examples/jsm/controls/TransformControls.js';
 import type { Connection } from '../Connection';
 import { Phone } from '../phone/Phone';
 import { Coordinator } from './cordinator/Coordinator';

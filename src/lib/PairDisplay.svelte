@@ -1,6 +1,9 @@
 <script lang="ts">
+	import { browser } from '$app/env';
+	import { onMount } from 'svelte';
+
 	import { WebGLRenderer } from 'three';
-	import { ARButton } from 'three/examples/jsm/webxr/ARButton';
+	import { ARButton } from 'three/examples/jsm/webxr/ARButton.js';
 	import { Connection } from './Connection';
 	import { createScene } from './phone/XRScene';
 	//   import { XRSpace } from "./dax/XRSpace";
@@ -22,9 +25,13 @@
 		}
 	});
 
-	document.body.appendChild(renderer.domElement);
+	if (browser) {
+		onMount(() => {
+			document.body.appendChild(renderer.domElement);
 
-	createScene(renderer, connection);
+			createScene(renderer, connection);
 
-	document.body.appendChild(arButton);
+			document.body.appendChild(arButton);
+		});
+	}
 </script>
