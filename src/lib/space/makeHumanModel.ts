@@ -1,7 +1,15 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
-export const makeHumanModel = ({ scene }: { scene: THREE.Scene }) => {
+export const makeHumanModel = ({
+	scene,
+	thickness,
+	isWireframe
+}: {
+	scene: THREE.Scene;
+	thickness?: number;
+	isWireframe?: boolean;
+}) => {
 	const loader = new GLTFLoader();
 
 	const group = new THREE.Group();
@@ -11,9 +19,16 @@ export const makeHumanModel = ({ scene }: { scene: THREE.Scene }) => {
 	polarGridHelper.material.transparent = true;
 	polarGridHelper.material.opacity = 0.15;
 	let line: THREE.LineSegments;
+	let wireframe: THREE.LineSegments<
+		THREE.EdgesGeometry<THREE.BufferGeometry>,
+		THREE.LineBasicMaterial
+	>;
 
 	function setOpacity(amount: number) {
-		line.material.opacity = amount;
+		wireframe.material.opacity = amount;
+	}
+	function setLineWidth(width: number) {
+		wireframe.material.linewidth = width;
 	}
 
 	//   0x0000ff;
@@ -23,21 +38,36 @@ export const makeHumanModel = ({ scene }: { scene: THREE.Scene }) => {
 	scene.add(polarGridHelper);
 
 	loader.load('assets/models/LeePerrySmith.glb', (gltf) => {
-		const mesh = gltf.scene.children[0];
+		const mesh = gltf.scene.children[0] as THREE.Mesh;
 		group.scale.multiplyScalar(0.5);
 
 		scene.add(group);
 		group.updateMatrixWorld(true);
 
-		const wireframe = new THREE.WireframeGeometry(mesh.geometry);
-		line = new THREE.LineSegments(wireframe);
-		line.material.transparent = true;
-		line.material.depthTest = true;
-		line.material.opacity = 0.05;
-		line.position.x = 4;
-		group.add(line);
+		console.log(mesh);
 
-		line.rotateY(THREE.MathUtils.degToRad(180));
+		const geometry = new THREE.EdgesGeometry(mesh.geometry); // or WireframeGeometry( geometry )
+		const material = new THREE.LineBasicMaterial({ color: 0xffffff, linewidth: 2 });
+		wireframe = new THREE.LineSegments(geometry, material);
+		wireframe.material.transparent = true;
+		wireframe.material.opacity = 0.1;
+		wireframe.material.linewidth = 0.05;
+		wireframe.position.x = 4;
+		// scene.add(wireframe);
+
+		// const wireframe = new THREE.MeshStandardMaterial();
+		// line = new THREE.LineSegments(wireframe);
+		// line.material.transparent = true;
+		// line.material.depthTest = true;
+		// line.material.opacity = 0.05;
+		// line.position.x = 4;
+
+		group.add(wireframe);
+
+		// if (isWireframe) group.add(wireframe);
+		// if (!isWireframe) group.add(mesh);
+
+		wireframe.rotateY(THREE.MathUtils.degToRad(180));
 
 		// scene.add(new THREE.BoxHelper(group));
 		// scene.add(new THREE.BoxHelper(scene));
@@ -46,8 +76,15 @@ export const makeHumanModel = ({ scene }: { scene: THREE.Scene }) => {
 	group.position.setY(-0.9);
 	group.position.setX(-2);
 
+	function showPolarHelper(show: boolean) {
+		if (show) scene.add(polarGridHelper);
+		else scene.remove(polarGridHelper);
+	}
+
 	return {
 		group,
-		setOpacity
+		setOpacity,
+		showPolarHelper,
+		setLineWidth
 	};
 };

@@ -1,7 +1,8 @@
+import { makeHumanModel } from '$lib/space/makeHumanModel';
+import { makeSoundMesh } from '$lib/space/sound/makeSoundMesh';
 import * as THREE from 'three';
 import {
 	BoxBufferGeometry,
-	Mesh,
 	MeshBasicMaterial,
 	PerspectiveCamera,
 	PositionalAudio,
@@ -10,17 +11,27 @@ import {
 } from 'three';
 import type { Connection } from '../Connection';
 
-export function createScene(renderer: WebGLRenderer, connection: Connection) {
+export const createScene = (renderer: WebGLRenderer, connection: Connection) => {
 	const scene = new Scene();
 
 	const camera = new PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.02, 5000);
 
 	const boxGeometry = new BoxBufferGeometry(0.00762, 0.16002, 0.077978);
 	const boxMaterial = new MeshBasicMaterial({ color: 0xff0000 });
-	const box = new Mesh(boxGeometry, boxMaterial);
+	const box = makeSoundMesh();
+	box.scale.multiplyScalar(0.5);
 	box.position.z = -3;
 
-	// const testButton = document.createElement("button");
+	const humanModel = makeHumanModel({ scene, thickness: 0, isWireframe: false });
+	humanModel.showPolarHelper(false);
+	humanModel.group.position.set(0, 0, 0);
+	humanModel.group.scale.multiplyScalar(0.9);
+	// humanModel.setOpacity(1);
+	// humanModel.setLineWidth(1);
+
+	// humanModel.setOpacity(1);
+
+	// const testButton = docufment.createElement("button");
 	// testButton.innerText = "Testing";
 	// document.body.appendChild(testButton);
 
@@ -120,4 +131,4 @@ export function createScene(renderer: WebGLRenderer, connection: Connection) {
 	renderer.setAnimationLoop(renderLoop);
 
 	return scene;
-}
+};
