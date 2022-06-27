@@ -4,11 +4,11 @@
 
 	import { WebGLRenderer } from 'three';
 	import { ARButton } from 'three/examples/jsm/webxr/ARButton.js';
-	import { Connection } from './Connection';
 	import { createScene } from './phone/XRScene';
+	import { getConnection } from './utils/getConnection';
 	//   import { XRSpace } from "./dax/XRSpace";
 
-	const connection = new Connection('https://dax-server.michaelpalladino.io');
+	const connection = getConnection();
 
 	//   const xrSpace = new XRSpace(connection);
 	const { devicePixelRatio, innerHeight, innerWidth } = window;

@@ -1,10 +1,10 @@
 <script lang="ts">
 	import * as THREE from 'three';
-	import { Connection } from './Connection';
+	import { getConnection } from './utils/getConnection';
 
 	const clock = new THREE.Clock();
 
-	const connection = new Connection('https://dax-server.michaelpalladino.io');
+	const connection = getConnection();
 	let isPaired = false;
 
 	connection.socket.on('phone paired to desktop', (socketId: string) => {

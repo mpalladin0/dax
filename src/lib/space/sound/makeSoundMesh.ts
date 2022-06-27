@@ -9,7 +9,7 @@ export const makeSoundMesh = () => {
 	mesh.material.transparent = true;
 	mesh.material.opacity = 0.15;
 
-	const connection = getConnection({ url: 'https://dax-server.michaelpalladino.io' });
+	const connection = getConnection();
 
 	connection?.socket?.on('finger on screen', (socketId: string) => {
 		mesh.material.opacity = 0.35;

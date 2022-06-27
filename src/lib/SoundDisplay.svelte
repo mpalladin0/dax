@@ -4,10 +4,10 @@
 	import * as THREE from 'three';
 
 	import { PositionalAudioHelper } from 'three/examples/jsm/helpers/PositionalAudioHelper.js';
-	import { Connection } from './Connection';
 	import { Space } from './space/Space';
+	import { getConnection } from './utils/getConnection';
 
-	const connection = new Connection('https://dax-server.michaelpalladino.io');
+	const connection = getConnection();
 	const space = new Space({ connection });
 
 	const sound = space.coordinator.get({
