@@ -1,13 +1,12 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 
-	import { Connection } from '../lib/Connection';
-
 	import NeonText from '../lib/NeonText.svelte';
 	import PairDisplay from '../lib/PairDisplay.svelte';
 	import SoundDisplay from '../lib/SoundDisplay.svelte';
+	import { getConnection } from './utils/getConnection';
 
-	const connection = new Connection('https://dax-server.michaelpalladino.io');
+	const connection = getConnection();
 
 	if (connection.isMobile) {
 		console.log('Mobile ');
