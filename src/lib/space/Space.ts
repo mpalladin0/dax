@@ -262,6 +262,7 @@ export class Space {
 		// this.sounds.push(this.phone.mesh);
 
 		connection.socket.on('play sound', () => {
+			sound.source?.start();
 			sound.play();
 		});
 

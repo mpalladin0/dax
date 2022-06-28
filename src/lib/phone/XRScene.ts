@@ -35,38 +35,37 @@ export const createScene = (renderer: WebGLRenderer, connection: Connection) => 
 	// testButton.innerText = "Testing";
 	// document.body.appendChild(testButton);
 
+	let selected = false;
+
 	scene.add(box);
 
-	const controller = renderer.xr.getController(1);
-	scene.add(controller);
+	const controllers: THREE.XRTargetRaySpace[] = [];
+
+	for (let i = 0; i < 10; i++) {
+		const controller = renderer.xr.getController(i);
+		scene.add(controller);
+
+		controller.addEventListener('selectstart', onSelectStart);
+		controller.addEventListener('selectend', onSelectEnd);
+
+		// @ts-ignore
+		controllers.push(controller);
+	}
+
+	function onSelectStart() {
+		connection.socket?.emit('finger tap on');
+		selected = true;
+	}
+	function onSelectEnd() {
+		connection.socket?.emit('finger tap off');
+		selected = false;
+	}
 
 	const listener = new THREE.AudioListener();
 	camera.add(listener);
 
 	const sound = new PositionalAudio(listener);
 	box.add(sound);
-
-	// let r_x = 0;
-	// let r_y = 0;
-	// let r_z = 0;
-
-	// window.addEventListener('deviceorientation', (e) => {
-	//     r_x = THREE.MathUtils.degToRad(e.alpha)
-	//     r_y = THREE.MathUtils.degToRad(e.beta)
-	//     r_z = THREE.MathUtils.degToRad(e.gamma)
-	// })
-
-	let selected = false;
-
-	controller.addEventListener('selectstart', () => {
-		connection.socket.emit('finger tap on');
-		selected = true;
-	});
-
-	controller.addEventListener('selectend', () => {
-		connection.socket.emit('finger tap off');
-		selected = false;
-	});
 
 	if (navigator.xr) {
 		navigator.xr.isSessionSupported('immersive-ar').then((isSupported) => {
@@ -84,7 +83,64 @@ export const createScene = (renderer: WebGLRenderer, connection: Connection) => 
 				let state = renderer.xr.isPresenting;
 				cache[n] = state;
 
-				if (state === true) connection.socket.emit('xr active');
+				if (state === true) {
+					connection.socket.emit('xr active');
+					const session = renderer.xr.getSession();
+
+					if (!session) return;
+
+					// connection.socket?.emit('debug', controllers);
+
+					// const gamePads = navigator.getGamepads();
+					// connection.socket?.emit('debug', gamePads);
+
+					// onSessionStarted(session);
+
+					// session.inputSources.forEach((entry) => {
+					// 	connection.socket?.emit('deug', entry);
+					// });
+
+					// const controller = renderer.xr.getControllerGrip(0);
+					// scene.add(controller);
+
+					// session.addEventListener('inputsourceschange', (e) => {
+					// 	connection.socket?.emit('debug', e.added);
+					// });
+
+					// controller.addEventListener('selectstart', () => {
+					// 	connection.socket.emit('finger tap on');
+					// 	selected = true;
+					// });
+
+					// controller.addEventListener('selectend', () => {
+					// 	connection.socket.emit('finger tap off');
+					// 	selected = false;
+					// });
+
+					// connection.socket?.emit('debug', session.inputSources);
+
+					// connection.socket?.emit('debug', renderer.xr.getController(1));
+
+					// session.inputSources.forEach((source) => {
+					// 	connection.socket?.emit('debug', source);
+					// });
+
+					// session.addEventListener('selectstart', () => {
+					// 	connection.socket?.emit('finger tap on');
+					// });
+
+					// session.addEventListener('selectend', () => {
+					// 	connection.socket?.emit('finger tap off');
+					// });
+
+					// session.onselectstart = (e) => {
+					// 	connection.socket?.emit('finger tap off');
+					// };
+
+					// session.onselectend = (e) => {
+					// 	connection.socket?.emit('finger tap off');
+					// };
+				}
 				if (state === false) connection.socket.emit('xr inactive');
 
 				return state;
@@ -103,25 +159,32 @@ export const createScene = (renderer: WebGLRenderer, connection: Connection) => 
 		// Only render content if XR view is presenting.
 		if (renderer.xr.isPresenting) {
 			if (selected) {
-				box.position.x = controller.position.x;
-				box.position.y = controller.position.y;
-				box.position.z = controller.position.z;
+				for (const controller of controllers) {
+					if (!controller.position.x) continue;
+					box.position.x = controller.position.x;
+					box.position.y = controller.position.y;
+					box.position.z = controller.position.z;
 
-				////
-				box.rotation.x = controller.rotation.x;
-				box.rotation.y = controller.rotation.y;
-				box.rotation.z = controller.rotation.z;
+					////
+					box.rotation.x = controller.rotation.x;
+					box.rotation.y = controller.rotation.y;
+					box.rotation.z = controller.rotation.z;
 
-				const boxPositionPaylaod = {
-					x: box.position.x,
-					y: box.position.y,
-					z: box.position.z,
-					r_x: box.rotation.x,
-					r_y: box.rotation.y,
-					r_z: box.rotation.z
-				};
+					const boxPositionPaylaod = {
+						x: box.position.x,
+						y: box.position.y,
+						z: box.position.z,
+						r_x: box.rotation.x,
+						r_y: box.rotation.y,
+						r_z: box.rotation.z
+					};
+					connection.socket.emit('sound placement from controller', boxPositionPaylaod);
+				}
+				// controllers.forEach((controller) => {
 
-				connection.socket.emit('sound placement from controller', boxPositionPaylaod);
+				// });
+
+				// connection.socket.emit('sound placement from controller', boxPositionPaylaod);
 			}
 
 			renderer.render(scene, camera);
