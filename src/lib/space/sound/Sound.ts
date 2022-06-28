@@ -80,23 +80,24 @@ export class Sound extends PositionalAudio {
 		});
 
 		audioLoader.load(`assets/sounds/${url}`, (loadedBuffer) => {
-			const context = new AudioContext();
-			const streamDest = context.createMediaStreamDestination();
-			const buffer = context.createBuffer(1, loadedBuffer.length, loadedBuffer.sampleRate);
-			const source = context.createBufferSource();
+			super.setBuffer(loadedBuffer);
+			// const context = new AudioContext();
+			// const streamDest = context.createMediaStreamDestination();
+			// const buffer = context.createBuffer(1, loadedBuffer.length, loadedBuffer.sampleRate);
+			// const source = context.createBufferSource();
 
-			source.buffer = loadedBuffer;
-			source.connect(streamDest);
-			source.loop = false;
-			// source.start();
+			// source.buffer = loadedBuffer;
+			// source.connect(streamDest);
+			// source.loop = false;
+			// // source.start();
 
-			const playback = document.createElement('button');
+			// const playback = document.createElement('button');
 
-			document.body.appendChild(playback);
+			// document.body.appendChild(playback);
 
-			super.setMediaStreamSource(streamDest.stream);
+			// super.setMediaStreamSource(streamDest.stream);
 
-			super.source = source;
+			// super.source = source;
 
 			// playback.innerText = 'start';
 			// playback.onclick = () => {
@@ -104,7 +105,7 @@ export class Sound extends PositionalAudio {
 			// 	super.play();
 			// };
 
-			console.log(source, streamDest.stream);
+			// console.log(source, streamDest.stream);
 		});
 	};
 
