@@ -2,7 +2,7 @@
 	import { Html5Qrcode } from 'html5-qrcode';
 	import { onMount } from 'svelte';
 	import { WebGLRenderer } from 'three';
-	import { ARButton } from 'three/examples/jsm/webxr/ARButton';
+	import { ARButton } from 'three/examples/jsm/webxr/ARButton.js';
 	import { createScene } from './phone/XRScene';
 	import { getConnection } from './utils/getConnection';
 
