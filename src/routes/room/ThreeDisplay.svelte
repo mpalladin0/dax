@@ -6,7 +6,7 @@
 
 	import { getConnection } from '$lib/utils/getConnection';
 	import { onMount } from 'svelte';
-	import { PositionalAudioHelper } from 'three/examples/jsm/helpers/PositionalAudioHelper';
+	import { PositionalAudioHelper } from 'three/examples/jsm/helpers/PositionalAudioHelper.js';
 	// import { PositionalAudioHelper } from 'three/examples/jsm/helpers/PositionalAudioHelper';
 	// @ts-ignore
 
