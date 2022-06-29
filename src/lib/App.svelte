@@ -1,15 +1,15 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 
-	import NeonText from '../lib/NeonText.svelte';
 	import PairDisplay from '../lib/PairDisplay.svelte';
 	import SoundDisplay from '../lib/SoundDisplay.svelte';
+	import MakeOrJoinRoom from './MakeOrJoinRoom.svelte';
 	import { getConnection } from './utils/getConnection';
 
 	const connection = getConnection();
 
 	if (connection.isMobile) {
-		console.log('Mobile ');
+		// console.log('Mobile ');
 	}
 
 	onMount(() => {
@@ -21,7 +21,7 @@
 
 {#if connection.isDesktop}
 	<main>
-		<NeonText />
+		<MakeOrJoinRoom />
 		<SoundDisplay />
 		<!-- 
     <p>

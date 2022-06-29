@@ -14,11 +14,13 @@ export const makeSoundMesh = () => {
 	connection?.socket?.on('finger on screen', (socketId: string) => {
 		mesh.material.opacity = 0.35;
 
-		console.log('finger on');
+		console.log('[Dax] Finger on screen');
 	});
 
 	connection?.socket?.on('finger off screen', (socketId: string) => {
 		mesh.material.opacity = 0.15;
+
+		console.log('[Dax] Finger off screen');
 	});
 
 	return mesh;

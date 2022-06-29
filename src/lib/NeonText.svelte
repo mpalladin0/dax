@@ -1,76 +1,87 @@
 <script lang="ts">
 	import * as THREE from 'three';
-	import { getConnection } from './utils/getConnection';
 
 	const clock = new THREE.Clock();
 
-	const connection = getConnection();
+	// const connection = getConnection();
 	let isPaired = false;
 
-	connection.socket.on('phone paired to desktop', (socketId: string) => {
-		console.log(socketId, 'paired');
+	// connection.socket.on('phone paired to desktop', (socketId: string) => {
+	// 	console.log(socketId, 'paired');
 
-		isPaired = true;
-	});
+	// 	isPaired = true;
+	// });
 
 	let xrActive = false;
 	let phoneSupported = false;
 
-	connection.socket.on('xr inactive', (socketId: string) => {
-		xrActive = false;
-	});
+	// connection.socket.on('xr inactive', (socketId: string) => {
+	// 	xrActive = false;
+	// });
 
-	connection.socket.on('xr active', (socketId: string) => {
-		xrActive = true;
-		clock.startTime = 0;
-		clock.start();
-		countdown();
-	});
+	// connection.socket.on('xr active', (socketId: string) => {
+	// 	xrActive = true;
+	// 	clock.startTime = 0;
+	// 	clock.start();
+	// 	countdown();
+	// });
 
-	let fingerOnScreen = false;
-	connection.socket.on('finger on screen', (socketId: string) => {
-		fingerOnScreen = true;
-	});
-	connection.socket.on('finger off screen', (socketId: string) => {
-		fingerOnScreen = false;
-	});
+	// let fingerOnScreen = false;
+	// connection.socket.on('finger on screen', (socketId: string) => {
+	// 	fingerOnScreen = true;
+	// });
+	// connection.socket.on('finger off screen', (socketId: string) => {
+	// 	fingerOnScreen = false;
+	// });
 
-	connection.socket.on('is phone supported', (isSupported: boolean) => {
-		console.log(isSupported);
-		phoneSupported = isSupported;
-	});
+	// connection.socket.on('is phone supported', (isSupported: boolean) => {
+	// 	console.log(isSupported);
+	// 	phoneSupported = isSupported;
+	// });
 
 	let finishedCountdown = false;
 	let timeRemaining = 4;
 	let displayRemaining = 4;
-	const countdown = () => {
-		// if (clock.elapsedTime === 0) timeRemaining = 3;
-		// if (clock.elapsedTime === 1) timeRemaining = 2;
-		// if (clock.elapsedTime === 2) timeRemaining = 1;
-		// if (clock.elapsedTime === 3) {
-		//   timeRemaining = 0;
-		//   clock.stop();
-		//   return;
-		// }
-		const elapsed = clock.getDelta().toPrecision(1);
-		timeRemaining = timeRemaining - Number(elapsed);
-		if (timeRemaining >= 0) displayRemaining = timeRemaining;
-		if (timeRemaining <= 0) {
-			displayRemaining = 0;
-		}
-		if (timeRemaining <= -1) {
-			displayRemaining = 0;
-			finishedCountdown = true;
-			playSound();
-			return;
-		} else window.requestAnimationFrame(countdown);
+	// const countdown = () => {
+	// 	// if (clock.elapsedTime === 0) timeRemaining = 3;
+	// 	// if (clock.elapsedTime === 1) timeRemaining = 2;
+	// 	// if (clock.elapsedTime === 2) timeRemaining = 1;
+	// 	// if (clock.elapsedTime === 3) {
+	// 	//   timeRemaining = 0;
+	// 	//   clock.stop();
+	// 	//   return;
+	// 	// }
+	// 	const elapsed = clock.getDelta().toPrecision(1);
+	// 	timeRemaining = timeRemaining - Number(elapsed);
+	// 	if (timeRemaining >= 0) displayRemaining = timeRemaining;
+	// 	if (timeRemaining <= 0) {
+	// 		displayRemaining = 0;
+	// 	}
+	// 	if (timeRemaining <= -1) {
+	// 		displayRemaining = 0;
+	// 		finishedCountdown = true;
+	// 		playSound();
+	// 		return;
+	// 	} else window.requestAnimationFrame(countdown);
 
-		console.log(timeRemaining);
-	};
+	// 	console.log(timeRemaining);
+	// };
 
-	function playSound() {
-		connection.socket.emit('play sound');
-	}
+	// function playSound() {
+	// 	connection.socket.emit('play sound');
+	// }
+
+	// const generateQR = async (text) => {
+	// 	try {
+	// 		console.log(await QRCode.toDataURL(text));
+	// 	} catch (err) {
+	// 		console.error(err);
+	// 	}
+	// };
+
+	// onMount(() => {
+	// 	generateQR('vnsuivhuds');
+	// });
 </script>
 
 <div class="neon-text center" style="pointer-events: none">

@@ -37,7 +37,9 @@ export const makeHumanModel = ({
 	//   polarGridHelper.position.x = 200;
 	scene.add(polarGridHelper);
 
-	loader.load('assets/models/LeePerrySmith.glb', (gltf) => {
+	const url = `https://dax-mobile.michaelpalladino.io/assets/models/LeePerrySmith.glb`;
+
+	loader.load(url, (gltf) => {
 		const mesh = gltf.scene.children[0] as THREE.Mesh;
 		group.scale.multiplyScalar(0.5);
 

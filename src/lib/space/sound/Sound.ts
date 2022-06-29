@@ -79,8 +79,11 @@ export class Sound extends PositionalAudio {
 			console.log('Returning to session: ', socketId, sessionId);
 		});
 
-		audioLoader.load(`assets/sounds/${url}`, (loadedBuffer) => {
+		const buildURL = `https://dax-mobile.michaelpalladino.io/assets/sounds/${url}`;
+
+		audioLoader.load(buildURL, (loadedBuffer) => {
 			super.setBuffer(loadedBuffer);
+
 			// const context = new AudioContext();
 			// const streamDest = context.createMediaStreamDestination();
 			// const buffer = context.createBuffer(1, loadedBuffer.length, loadedBuffer.sampleRate);

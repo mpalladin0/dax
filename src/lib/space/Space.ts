@@ -36,7 +36,7 @@ export class Space {
 	domElement: HTMLCanvasElement;
 	cameraStaringPosition: THREE.Quaternion;
 	private readonly cameraStartingEuler: THREE.Euler;
-	private readonly currentCameraEuler!: THREE.Euler;
+	private currentCameraEuler!: THREE.Euler;
 	currentCameraQ: THREE.Quaternion;
 	phoneXrActive: boolean;
 	setHumanModelOpacity: (amount: number) => void;
@@ -67,6 +67,7 @@ export class Space {
 		this.phoneXrActive = false;
 
 		connection.socket.on('xr active', (socketId: string) => {
+			console.log('[Dax] XR now active.');
 			const current = new THREE.Quaternion();
 			this.currentCameraEuler = new THREE.Euler(
 				this.camera.position.x,
@@ -264,6 +265,10 @@ export class Space {
 		connection.socket.on('play sound', () => {
 			// sound.source?.start();
 			sound.play();
+		});
+
+		connection.socket?.on('xr active', () => {
+			this.phoneXrActive = true;
 		});
 
 		/** Phone Controls */

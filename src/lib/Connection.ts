@@ -1,3 +1,4 @@
+import { browser } from '$app/env';
 import { io, Socket } from 'socket.io-client';
 import { EventDispatcher } from 'three';
 
@@ -26,22 +27,27 @@ export class Connection extends EventDispatcher {
 			if (this.isMobile) this.onMobileConnection();
 			else this.onDesktopConnection();
 		});
+
+		this.socket.on('disconnect', () => {
+			this.socket?.disconnect();
+		});
 	}
 
 	private onMobileConnection() {
 		// this.deviceType = 'Mobile'
 
 		this.socket.emit('mobile connection');
-		console.log('Mobile connection established.');
+		// console.log('Mobile connection established.');
 	}
 	private onDesktopConnection() {
 		// this.deviceType = 'Desktop'
 
 		this.socket.emit('desktop connection');
-		console.log('Desktop connection established');
+		// console.log('Desktop connection established');
 	}
 
 	public get isMobile() {
+		if (!browser) return false;
 		if (
 			/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
 		) {
@@ -50,6 +56,7 @@ export class Connection extends EventDispatcher {
 	}
 
 	public get isDesktop() {
+		if (!browser) return false;
 		if (
 			/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
 		) {

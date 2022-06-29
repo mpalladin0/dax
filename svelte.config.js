@@ -8,11 +8,15 @@ const config = {
 	preprocess: preprocess(),
 
 	kit: {
-		adapter: adapter()
+		adapter: adapter(),
+		vite: {
+			assetsInclude: ["**/*.gltf", "**/*.mp3", "**/*.glb",]
+		}
 	},
 	files: {
-		asserts: 'static'
-	}
+		asserts: 'static',
+	},
+
 	
 };
 
