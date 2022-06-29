@@ -72,14 +72,14 @@ export class Sound extends PositionalAudio {
 		const audioLoader = new THREE.AudioLoader();
 
 		this.connection.socket?.on('session created', (socketId: string, session: any) => {
-			console.log(socketId, session);
+			// console.log(socketId, session);
 		});
 
 		this.connection.socket?.on('returning to session', (socketId: string, sessionId: string) => {
-			console.log('Returning to session: ', socketId, sessionId);
+			// console.log('Returning to session: ', socketId, sessionId);
 		});
 
-		const buildURL = `https://dax-mobile.michaelpalladino.io/assets/sounds/${url}`;
+		const buildURL = `https://dax.michaelpalladino.io/assets/sounds/${url}`;
 
 		audioLoader.load(buildURL, (loadedBuffer) => {
 			super.setBuffer(loadedBuffer);
@@ -131,14 +131,14 @@ export default class SoundStream {
 		this.mediaElement.preload = 'auto';
 		this.mediaElement.crossOrigin = 'anonymous';
 		this.mediaElement.onloadstart = (ev) => {
-			console.log('Loading started: ', ev);
+			// console.log('Loading started: ', ev);
 		};
 		this.mediaElement.onloadeddata = (ev) => {
-			console.log('Metadata loaded', ev);
+			// console.log('Metadata loaded', ev);
 		};
 
 		this.mediaElement.onplay = (ev) => {
-			console.log('Is playing', ev);
+			// console.log('Is playing', ev);
 		};
 		// var self = this;
 		// this.mediaElement.addEventListener('loadedmetadata', function (_event) {
