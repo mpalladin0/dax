@@ -3,7 +3,7 @@
 	import * as THREE from 'three';
 
 	import { onMount } from 'svelte';
-	import { generateUUID } from 'three/src/math/MathUtils';
+	import { generateUUID } from 'three/src/math/MathUtils.js';
 	import { getConnection } from './utils/getConnection';
 
 	const clock = new THREE.Clock();
