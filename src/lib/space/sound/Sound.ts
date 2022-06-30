@@ -127,7 +127,7 @@ export class Sound extends PositionalAudio {
 		// 	// getElapsedTime();
 		// });
 
-		const buildURL = `https://dax-mobile.michaelpalladino.io/assets/sounds/${url}`;
+		const buildURL = `https://dax.michaelpalladino.io/assets/sounds/${url}`;
 
 		audioLoader.load(buildURL, (loadedBuffer) => {
 			super.setBuffer(loadedBuffer);
