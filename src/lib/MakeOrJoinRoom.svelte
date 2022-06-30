@@ -1,114 +1,30 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import * as THREE from 'three';
-
 	import { onMount } from 'svelte';
 	import { generateUUID } from 'three/src/math/MathUtils.js';
-	import { getConnection } from './utils/getConnection';
+	import { getSocket, type DaxSocket } from './hooks/getSocket';
+	import { getUser, type User } from './hooks/getUser';
 
-	const clock = new THREE.Clock();
-
-	const connection = getConnection();
-	// let isPaired = false;
-
-	// connection.socket.on('phone paired to desktop', (socketId: string) => {
-	// 	console.log(socketId, 'paired');
-
-	// 	isPaired = true;
-	// });
-
-	// let xrActive = false;
-	// let phoneSupported = false;
-
-	// connection.socket.on('xr inactive', (socketId: string) => {
-	// 	xrActive = false;
-	// });
-
-	// connection.socket.on('xr active', (socketId: string) => {
-	// 	xrActive = true;
-	// 	clock.startTime = 0;
-	// 	clock.start();
-	// 	countdown();
-	// });
-
-	// let fingerOnScreen = false;
-	// connection.socket.on('finger on screen', (socketId: string) => {
-	// 	fingerOnScreen = true;
-	// });
-	// connection.socket.on('finger off screen', (socketId: string) => {
-	// 	fingerOnScreen = false;
-	// });
-
-	// connection.socket.on('is phone supported', (isSupported: boolean) => {
-	// 	console.log(isSupported);
-	// 	phoneSupported = isSupported;
-	// });
-
-	// let finishedCountdown = false;
-	// let timeRemaining = 4;
-	// let displayRemaining = 4;
-	// const countdown = () => {
-	// 	const elapsed = clock.getDelta().toPrecision(1);
-	// 	timeRemaining = timeRemaining - Number(elapsed);
-	// 	if (timeRemaining >= 0) displayRemaining = timeRemaining;
-	// 	if (timeRemaining <= 0) {
-	// 		displayRemaining = 0;
-	// 	}
-	// 	if (timeRemaining <= -1) {
-	// 		displayRemaining = 0;
-	// 		finishedCountdown = true;
-	// 		playSound();
-	// 		return;
-	// 	} else window.requestAnimationFrame(countdown);
-
-	// 	console.log(timeRemaining);
-	// };
-
-	// function playSound() {
-	// 	connection.socket.emit('play sound');
-	// }
-
-	// let connection: Connection;
-	let makeRoomId: string;
 	let hasRoom: boolean = false;
 	let hasRoomId: string;
 
-	onMount(() => {
-		// connection = getConnection() as Connection;
-		connection.socket?.emit('rooms of user');
-		connection.socket?.on('rooms of user', (socketId: string, roomId: string | null) => {
-			if (socketId !== connection.socket.id) return;
+	let user: User;
 
-			if (roomId) {
-				hasRoom = true;
-				hasRoomId = roomId;
-			} else {
-				hasRoom = false;
-			}
+	// let socket: DaxSocket;
+
+	let generatedUUID;
+	let socket: DaxSocket;
+	onMount(() => {
+		socket = getSocket({
+			type: 'DESKTOP',
+			userId: getUser().id
 		});
 
-		connection.socket?.on('room created', (id: string) => {
-			if (makeRoomId === id) {
-				// console.log('Direct me to my room!');
-
-				goto(`/room/${id}`);
-			}
-		});
+		generatedUUID = generateUUID();
 	});
 
-	onMount(() => {
-		connection.socket?.emit('rooms of user');
-		connection.socket?.on('rooms of user', (roomId: string) => {});
-	});
-
-	function onMakeRoom() {
-		if (hasRoom) {
-			// console.log(hasRoomId);
-			goto(`/room/${hasRoomId}`);
-		} else {
-			makeRoomId = generateUUID();
-			connection.socket?.emit('create room', makeRoomId);
-		}
+	async function onMakeRoom() {
+		await goto(`/room/${generatedUUID}`);
 	}
 </script>
 
@@ -123,26 +39,6 @@
 				It looks like you're not in a room yet!
 			</h4>
 			<button class="make-room-btn" on:click={onMakeRoom}>Make a room</button>
-			<!-- <h5 style="color: white; margin-bottom: 0%; padding-bottom: 0%">Make a room:</h5>
-			<ol style="color: white; max-width: 32rem; h6">
-				<li>
-					Download <a href="https://apps.apple.com/us/app/webxr-viewer/id1295998056">XR Viewer</a>
-					on the Apple App Store.
-				</li>
-				<li>
-					Visit <a href="https://dax.michaelpalladino.io">dax.michaelpalladino.io</a> from within XR
-					Viewer.
-				</li>
-			</ol> -->
-			<!-- <hr
-				style="background-color: darkgray; max-width: 32rem; border: none; height: 0.067rem; opacity: 30%"
-			/>
-			<h5 style="color: white; margin-bottom: 0%; padding-bottom: 0%;">Join an existing room:</h5>
-			<ol style="color: white; max-width: 32rem;">
-				<li>
-					Visit <a href="https://dax.michaelpalladino.io/">dax.michaelpalladino.io</a> on your phone.
-				</li>
-			</ol> -->
 		</center>
 	</div>
 

@@ -37,7 +37,7 @@ export const makeHumanModel = ({
 	//   polarGridHelper.position.x = 200;
 	scene.add(polarGridHelper);
 
-	const url = `https://dax.michaelpalladino.io/assets/models/LeePerrySmith.glb`;
+	const url = `https://dax-mobile.michaelpalladino.io/assets/models/LeePerrySmith.glb`;
 
 	loader.load(url, (gltf) => {
 		const mesh = gltf.scene.children[0] as THREE.Mesh;
@@ -55,24 +55,10 @@ export const makeHumanModel = ({
 		wireframe.material.opacity = 0.1;
 		wireframe.material.linewidth = 0.05;
 		wireframe.position.x = 4;
-		// scene.add(wireframe);
-
-		// const wireframe = new THREE.MeshStandardMaterial();
-		// line = new THREE.LineSegments(wireframe);
-		// line.material.transparent = true;
-		// line.material.depthTest = true;
-		// line.material.opacity = 0.05;
-		// line.position.x = 4;
 
 		group.add(wireframe);
 
-		// if (isWireframe) group.add(wireframe);
-		// if (!isWireframe) group.add(mesh);
-
 		wireframe.rotateY(THREE.MathUtils.degToRad(180));
-
-		// scene.add(new THREE.BoxHelper(group));
-		// scene.add(new THREE.BoxHelper(scene));
 	});
 
 	group.position.setY(-0.9);

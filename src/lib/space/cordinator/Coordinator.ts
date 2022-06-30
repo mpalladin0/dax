@@ -1,5 +1,5 @@
+import type { DaxSocket } from '$lib/hooks/getSocket';
 import type * as THREE from 'three';
-import type { Connection } from '../../Connection';
 import { Sound } from '../sound/Sound';
 
 interface SoundPosition {
@@ -12,18 +12,18 @@ interface SoundPosition {
 
 export class Coordinator {
 	private readonly sounds = new Map<string, Sound>();
-	private readonly connection: Connection;
+	private readonly socket: DaxSocket;
 	private readonly listener: THREE.AudioListener;
 
-	constructor({ connection, listener }: { connection: Connection; listener: THREE.AudioListener }) {
-		this.connection = connection;
+	constructor({ socket, listener }: { socket: DaxSocket; listener: THREE.AudioListener }) {
+		this.socket = socket;
 		this.listener = listener;
 
-		connection.socket?.on('move sound from desktop', (soundName: string, position: SoundPosition) =>
+		socket?.on('move sound from desktop', (soundName: string, position: SoundPosition) =>
 			this.onMoveFromPhone({ name: soundName, newPosition: position })
 		);
 
-		connection.socket?.on('move sound from phone', (soundName: string, position: SoundPosition) =>
+		socket?.on('move sound from phone', (soundName: string, position: SoundPosition) =>
 			this.onMoveFromPhone({ name: soundName, newPosition: position })
 		);
 	}
@@ -50,10 +50,10 @@ export class Coordinator {
 	};
 
 	private informDesktop = ({ name }) => {
-		this.connection.socket?.emit('add sound desktop', name);
+		this.socket?.emit('add sound desktop', name);
 	};
 	private informPhone = ({ name }) => {
-		this.connection.socket?.emit('add sound phone', name);
+		this.socket?.emit('add sound phone', name);
 	};
 
 	private onMoveFromDesktop = ({

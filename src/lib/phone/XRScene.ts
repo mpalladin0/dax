@@ -13,9 +13,13 @@ import type { Connection } from '../Connection';
 export const createScene = (renderer: WebGLRenderer, connection: Connection) => {
 	const scene = new Scene();
 
+	document.body.style.margin = '0';
+	document.body.style.height = '100%';
+	document.body.style.overflow = 'hidden';
+
 	let room: string;
-	connection.socket?.on('controller paired', (controllerId: string, roomId: string) => {
-		connection.socket?.emit('debug', 'debuggingggg');
+	connection.socket?.on('controller paired', (roomId: string) => {
+		connection.socket?.emit('debug', room);
 		room = roomId;
 	});
 

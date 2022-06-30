@@ -1,7 +1,22 @@
-import { Connection as MakeConnection } from '../Connection';
+import { Connection } from '../Connection';
 
-export const getConnection = (url?: string) => {
-	// if (browser)
-	return new MakeConnection(url ?? 'https://dax.server.michaelpalladino.io') as MakeConnection;
-	// else throw new Error('Connection can only be used in browser');
+const memoizeConnection = () => {
+	let cache = new Array<Connection>(1);
+	return () => {
+		if (cache[0]) {
+			return cache[0];
+		} else {
+			let connection = new Connection('https://dax.server.michaelpalladino.io');
+			cache[0] = connection;
+			return connection;
+		}
+	};
 };
+
+const connection = memoizeConnection();
+/**
+ *
+ * @param url
+ * @returns a memoized connection object
+ */
+export const getConnection = (url?: string) => connection();

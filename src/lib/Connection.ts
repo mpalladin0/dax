@@ -20,12 +20,12 @@ export class Connection extends EventDispatcher {
 	constructor(url: string) {
 		super();
 
-		console.log('Connecting...');
+		console.log('[Dax] Connecting to server..');
 		this.socket = io(url);
 
 		this.socket.on('connect', () => {
 			if (this.isMobile) this.onMobileConnection();
-			else this.onDesktopConnection();
+			else this.on;
 		});
 
 		this.socket.on('disconnect', () => {
@@ -34,17 +34,14 @@ export class Connection extends EventDispatcher {
 	}
 
 	private onMobileConnection() {
-		// this.deviceType = 'Mobile'
+		console.log('[Dax] Connected.');
 
 		this.socket.emit('mobile connection');
-		// console.log('Mobile connection established.');
 	}
-	private onDesktopConnection() {
-		// this.deviceType = 'Desktop'
-
-		this.socket.emit('desktop connection');
-		// console.log('Desktop connection established');
-	}
+	// private onDesktopConnection() {
+	// 	console.log('[Dax] Connected.');
+	// 	this.socket.emit('desktop connection');
+	// }
 
 	public get isMobile() {
 		if (!browser) return false;

@@ -17,6 +17,7 @@
 		"@playwright/test": "^1.22.2",
 		"@sveltejs/adapter-auto": "next",
 		"@sveltejs/kit": "next",
+		"@types/qrcode": "^1.4.2",
 		"@types/three": "^0.141.0",
 		"prettier": "^2.6.2",
 		"prettier-plugin-svelte": "^2.7.0",

@@ -1,5 +1,7 @@
 <script lang="ts">
-	import { getConnection } from '$lib/utils/getConnection';
+	import { getSocket } from '$lib/hooks/getSocket';
+
+	import { getUser } from '$lib/hooks/getUser';
 
 	import QRCode from 'qrcode';
 	import { onMount } from 'svelte';
@@ -7,6 +9,7 @@
 
 	const clock = new THREE.Clock();
 	export let room;
+
 	let isPaired = false;
 	let xrActive = false;
 	let phoneSupported = false;
@@ -26,52 +29,32 @@
 		}
 	};
 
-	onMount(() => {
-		const url = `https://dax.michaelpalladino.io/join/${room.id}`;
-
-		const roomId = room.id;
-
-		QRCode.toCanvas(
-			roomId,
-			{ errorCorrectionLevel: 'L', margin: 1, width: 350 },
-			function (err, canvas: HTMLCanvasElement) {
-				// canvas.width = 100;
-				// canvas.height = 100;
-
-				const container = document.getElementById('qr-container');
-				container!.appendChild(canvas);
-			}
-		);
-	});
-
-	onMount(() => {
-		const connection = getConnection();
-
-		connection.socket?.on('controller paired', () => {
-			// console.log('Controller paired!');
-			isPaired = true;
+	onMount(async () => {
+		const socket = await getSocket({
+			type: 'DESKTOP',
+			userId: getUser().id
 		});
 
-		// connection.socket.on('phone paired to desktop', (socketId: string) => {
-		// 	console.log(socketId, 'paired');
-		// 	isPaired = true;
-		// });
+		appendQRCode(room);
 
-		connection.socket.on('xr inactive', (socketId: string) => {
+		socket.emit('join room', {
+			roomId: room
+		});
+
+		socket.on('xr inactive', (socketId: string) => {
 			xrActive = false;
 		});
-
-		connection.socket.on('xr active', (socketId: string) => {
+		socket.on('xr active', (socketId: string) => {
+			console.log('[Controller] XR Active, begin countdown.');
 			xrActive = true;
 			clock.startTime = 0;
 			clock.start();
 			countdown();
 		});
-
-		connection.socket.on('finger on screen', (socketId: string) => {
+		socket.on('finger on screen', (socketId: string) => {
 			fingerOnScreen = true;
 		});
-		connection.socket.on('finger off screen', (socketId: string) => {
+		socket.on('finger off screen', (socketId: string) => {
 			fingerOnScreen = false;
 		});
 
@@ -88,14 +71,61 @@
 				playSound();
 				return;
 			} else window.requestAnimationFrame(countdown);
-
 			// console.log(timeRemaining);
 		};
 
 		function playSound() {
-			connection.socket.emit('play sound');
+			socket.emit('play sound', getUser().id);
 		}
+
+		function appendQRCode(roomId: string) {
+			QRCode.toCanvas(
+				roomId,
+				{ errorCorrectionLevel: 'L', margin: 1, width: 350 },
+				(err, canvas: HTMLCanvasElement) => {
+					console.log(canvas);
+					console.log(err);
+					const container = document.getElementById('qr-container');
+					container!.appendChild(canvas);
+				}
+			);
+		}
+
+		socket.on('controller paired', (roomId: string) => {
+			console.log('[Controller] Paired to room ', roomId);
+			isPaired = true;
+		});
 	});
+	// let user: User;
+	// if (browser) {
+
+	// user = getUser();
+
+	// connection.socket?.on('controller disconnected', () => {
+	// 	const container = document.getElementById('qr-container');
+	// 	console.log(container);
+	// 	// container?.childNodes.forEach((child) => {
+	// 	// 	container.removeChild(child);
+	// 	// });
+	// 	// appendQRCode(room);
+	// 	isPaired = false;
+	// 	// xrActive = false;
+	// });
+	// const connection = getConnection();
+	// connection.socket?.on('controller paired', (isPaired = true));
+	// connection.socket.on('phone paired to desktop', (socketId: string) => {
+	// 	console.log(socketId, 'paired');
+	// 	isPaired = true;
+	// });
+
+	// onMount(() => {
+	// 	const url = `https://dax.michaelpalladino.io/pair/${room}`;
+	// 	const roomId = room;
+	// 	appendQRCode(roomId);
+	// });
+
+	// onMount(() => {});
+	// }
 </script>
 
 <div class="neon-text center" style="pointer-events: none">
@@ -111,7 +141,7 @@
 
 					{#if !fingerOnScreen}
 						<div class="neon">Rest thumb on phone screen</div>
-						<h5 style="color: white">Now Playing "Alright" by Travis Scott</h5>
+						<h5 style="color: white">Now Playing "All Falls Down" by Kanye West</h5>
 					{/if}
 				{/if}
 				{#if !finishedCountdown}
@@ -152,6 +182,7 @@
 			<div class="neon">Waiting to pair..</div>
 			<center>
 				<div id="qr-container" />
+
 				<!-- <canvas id="qr-canvas" style="background-color: -50%" /> -->
 
 				<h5 style="color: white; margin-bottom: 0%; padding-bottom: 0%">Pair your iPhone:</h5>

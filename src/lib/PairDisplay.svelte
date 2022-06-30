@@ -31,19 +31,27 @@
 		html5QrCode
 			.start({ facingMode: { exact: 'environment' } }, config, onScanSuccess, onScanFail)
 			.then(() => {
-				connection.socket?.emit('debug', 'Scanner started');
+				connection.socket?.emit('debug', '[Controller] Scanner started');
 
 				connection.socket?.on('controller paired', async () => {
 					await html5QrCode.stop().then(() => {
 						html5QrCode.clear();
 						paired = true;
 					});
-					connection.socket?.emit('debug', 'controller paired!');
+					// connection.socket?.emit('debug', 'controller paired!');
 					const overlay = document.getElementById('viewer-overlay');
 					overlay.style.display = 'block';
 
 					paired = true;
+
+					return;
 				});
+
+				// connection.socket?.on('controller disconnected', async () => {
+				// 	paired = false;
+				// 	const overlay = document.getElementById('viewer-overlay');
+				// 	overlay.style.display = 'none';
+				// });
 			});
 	}
 

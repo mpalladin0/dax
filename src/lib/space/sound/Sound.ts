@@ -1,5 +1,5 @@
-import type { Connection } from '$lib/Connection';
-import { getConnection } from '$lib/utils/getConnection';
+import { getSocket, type DaxSocket } from '$lib/hooks/getSocket';
+import { getUser } from '$lib/hooks/getUser';
 import * as THREE from 'three';
 import { PositionalAudio } from 'three';
 
@@ -27,7 +27,7 @@ const unlockAudioContext = (audioCtx: AudioContext) => {
 export class Sound extends PositionalAudio {
 	public declare readonly name: string;
 	public isMoving = false;
-	private connection: Connection;
+	private readonly socket: DaxSocket;
 	constructor({
 		name,
 		url,
@@ -39,7 +39,10 @@ export class Sound extends PositionalAudio {
 	}) {
 		super(listener);
 		this.name = name;
-		this.connection = getConnection();
+		// this.socket = getSocket({
+		// 	type: 'DESKTOP',
+		// 	userId: getUser().id
+		// });
 		this.loadBufferFromStream();
 		this.loadBuffer({ url });
 
@@ -68,39 +71,84 @@ export class Sound extends PositionalAudio {
 		// 	// startAt += buffer.duration;
 		// });
 	};
-	public loadBuffer = ({ url }: { url: string }) => {
+	public loadBuffer = async ({ url }: { url: string }) => {
+		const socket = await getSocket({
+			type: 'DESKTOP',
+			userId: getUser().id
+		});
+
 		const audioLoader = new THREE.AudioLoader();
 
-		this.connection.socket?.on('session created', (socketId: string, session: any) => {
-			// console.log(socketId, session);
+		// const clock = new THREE.Clock();
+		// let current = clock.getElapsedTime();
+		// let delta = clock.getDelta();
+		// const getElapsedTime = () => {
+		// 	delta = clock.getDelta();
+		// 	current = current + delta;
+		// 	this.connection.socket?.emit('sound elapsed time', current);
+		// };
+
+		socket.on('start sound', (at: number) => {
+			if (this.isPlaying) return;
+			if (!this.isPlaying) {
+				this.source.start(0, at);
+			}
 		});
 
-		this.connection.socket?.on('returning to session', (socketId: string, sessionId: string) => {
-			// console.log('Returning to session: ', socketId, sessionId);
-		});
+		// this.connection.socket.on('start sound', (at: number) => {
+		// 	if (this.isPlaying) return;
 
-		const buildURL = `https://dax.michaelpalladino.io/assets/sounds/${url}`;
+		// 	console.log('Starting sound at ', at);
+
+		// 	if (!this.isPlaying) {
+		// 		this.source.start(0, at);
+		// 	}
+
+		// 	this.connection.socket?.emit("destroy room")
+
+		// 	// this.onEnded = () => {
+		// 	// 	this.connection.socket?.emit('sound ended');
+		// 	// 	this.connection.socket?.emit('destroy room');
+		// 	// };
+
+		// 	// this.source?.onended =
+
+		// 	// console.log('Requesting to play sound, need elapsed time first..');
+
+		// 	// this.connection.socket?.emit('get elapsed time');
+
+		// 	// this.connection.socket?.on('elapsed time', () => {
+		// 	// 	console.log('Elapsed time so far...');
+		// 	// });
+
+		// 	// clock.start();
+		// 	// this.source.
+		// 	// this.play();
+		// 	// getElapsedTime();
+		// });
+
+		const buildURL = `https://dax-mobile.michaelpalladino.io/assets/sounds/${url}`;
 
 		audioLoader.load(buildURL, (loadedBuffer) => {
 			super.setBuffer(loadedBuffer);
 
-			// const context = new AudioContext();
-			// const streamDest = context.createMediaStreamDestination();
+			const context = new AudioContext();
+			const streamDest = context.createMediaStreamDestination();
 			// const buffer = context.createBuffer(1, loadedBuffer.length, loadedBuffer.sampleRate);
-			// const source = context.createBufferSource();
+			const source = context.createBufferSource();
 
-			// source.buffer = loadedBuffer;
-			// source.connect(streamDest);
-			// source.loop = false;
-			// // source.start();
+			source.buffer = loadedBuffer;
+			source.connect(streamDest);
+			source.loop = false;
+			// source.start();
 
 			// const playback = document.createElement('button');
 
 			// document.body.appendChild(playback);
 
-			// super.setMediaStreamSource(streamDest.stream);
+			super.setMediaStreamSource(streamDest.stream);
 
-			// super.source = source;
+			super.source = source;
 
 			// playback.innerText = 'start';
 			// playback.onclick = () => {

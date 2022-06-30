@@ -1,7 +1,7 @@
+import type { DaxSocket } from '$lib/hooks/getSocket';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls.js';
-import type { Connection } from '../Connection';
 // import { Phone } from '../phone/Phone';
 import { Coordinator } from './cordinator/Coordinator';
 import { makeCamera, type Camera } from './makeCamera';
@@ -44,7 +44,7 @@ export class Space {
 	mesh: THREE.Mesh<THREE.BoxGeometry, THREE.MeshBasicMaterial>;
 	// soundMesh: THREE.Mesh<THREE.BoxGeometry, THREE.MeshBasicMaterial>;
 
-	constructor({ connection }: { connection: Connection }) {
+	constructor({ socket }: { socket: DaxSocket }) {
 		/** Renderer */
 		this.renderer = makeRenderer();
 		this.domElement = this.renderer.domElement;
@@ -66,7 +66,7 @@ export class Space {
 
 		this.phoneXrActive = false;
 
-		connection.socket.on('xr active', (socketId: string) => {
+		socket.on('xr active', (socketId: string) => {
 			console.log('[Dax] XR now active.');
 			const current = new THREE.Quaternion();
 			this.currentCameraEuler = new THREE.Euler(
@@ -244,13 +244,13 @@ export class Space {
 		// });
 
 		this.coordinator = new Coordinator({
-			connection: connection,
+			socket: socket,
 			listener: this.listener
 		});
 
 		const sound = this.coordinator.add({
-			name: 'alright',
-			url: 'alright.mp3'
+			name: 'all_falls_down',
+			url: 'all_falls_down.mp3'
 		});
 
 		// this.scene.add(sound);
@@ -259,15 +259,8 @@ export class Space {
 		this.mesh.add(sound);
 
 		this.scene.add(this.mesh);
-		// this.phone.mesh.add(sound);
-		// this.sounds.push(this.phone.mesh);
 
-		connection.socket.on('play sound', () => {
-			// sound.source?.start();
-			sound.play();
-		});
-
-		connection.socket?.on('xr active', () => {
+		socket?.on('xr active', () => {
 			this.phoneXrActive = true;
 		});
 
@@ -294,7 +287,7 @@ export class Space {
 		window.addEventListener('click', this.onPointerClick);
 		window.addEventListener('pointermove', this.onPointerMove);
 
-		this.origin = new THREE.Vector3(0, -1, 0);
+		this.origin = new THREE.Vector3(0, 0, 0);
 	}
 
 	public renderLoop = () => {
