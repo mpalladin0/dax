@@ -7,7 +7,7 @@
 	import { getSocket } from '$lib/hooks/getSocket';
 	import { getUser } from '$lib/hooks/getUser';
 	import { onMount } from 'svelte';
-	import { PositionalAudioHelper } from 'three/examples/jsm/helpers/PositionalAudioHelper';
+	import { PositionalAudioHelper } from 'three/examples/jsm/helpers/PositionalAudioHelper.js';
 	// import { PositionalAudioHelper } from 'three/examples/jsm/helpers/PositionalAudioHelper';
 	// @ts-ignore
 
