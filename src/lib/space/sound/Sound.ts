@@ -81,7 +81,7 @@ export class Sound extends PositionalAudio {
 
 		const audioLoader = new THREE.AudioLoader();
 
-		const buildURL = `https://dax-mobile.michaelpalladino.io/assets/sounds/${url}`;
+		const buildURL = `https://dax.michaelpalladino.io/assets/sounds/${url}`;
 
 		audioLoader.load(buildURL, (loadedBuffer) => {
 			super.setBuffer(loadedBuffer);
@@ -110,14 +110,6 @@ export class Sound extends PositionalAudio {
 				this.source?.start(0, at);
 				// this.play();
 			});
-
-			// playback.innerText = 'start';
-			// playback.onclick = () => {
-			// 	source.start(0, 0);
-			// 	super.play();
-			// };
-
-			// console.log(source, streamDest.stream);
 		});
 	};
 
