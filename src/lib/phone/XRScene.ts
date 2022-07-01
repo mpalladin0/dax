@@ -1,14 +1,7 @@
 import type { DaxSocket } from '$lib/hooks/getSocket';
 import { makeSoundMesh } from '$lib/space/sound/makeSoundMesh';
 import * as THREE from 'three';
-import {
-	BoxBufferGeometry,
-	MeshBasicMaterial,
-	PerspectiveCamera,
-	PositionalAudio,
-	Scene,
-	WebGLRenderer
-} from 'three';
+import { PerspectiveCamera, PositionalAudio, Scene, WebGLRenderer } from 'three';
 
 export const createScene = async (renderer: WebGLRenderer, socket: DaxSocket) => {
 	const scene = new Scene();
@@ -25,9 +18,9 @@ export const createScene = async (renderer: WebGLRenderer, socket: DaxSocket) =>
 
 	const camera = new PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.02, 5000);
 
-	const boxGeometry = new BoxBufferGeometry(0.00762, 0.16002, 0.077978);
-	const boxMaterial = new MeshBasicMaterial({ color: 0xff0000 });
-	const box = await makeSoundMesh();
+	// const boxGeometry = new BoxBufferGeometry(0.00762, 0.16002, 0.077978);
+	// const boxMaterial = new MeshBasicMaterial({ color: 0xff0000 });
+	const box = await makeSoundMesh(socket);
 	box.scale.multiplyScalar(0.5);
 	box.position.z = -3;
 

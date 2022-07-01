@@ -7,6 +7,7 @@
 	import { getSocket } from '$lib/hooks/getSocket';
 	import { getUser } from '$lib/hooks/getUser';
 	import { onMount } from 'svelte';
+	import { PositionalAudioHelper } from 'three/examples/jsm/helpers/PositionalAudioHelper';
 	// import { PositionalAudioHelper } from 'three/examples/jsm/helpers/PositionalAudioHelper';
 	// @ts-ignore
 
@@ -25,6 +26,12 @@
 		sound = space.coordinator.get({
 			name: 'all_falls_down'
 		}) as Sound;
+
+		const helper = new PositionalAudioHelper(sound);
+
+		socket.on('xr active', () => {
+			space.mesh.add(helper);
+		});
 
 		space.renderLoop();
 

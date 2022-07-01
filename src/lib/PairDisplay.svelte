@@ -22,6 +22,7 @@
 			type: 'CONTROLLER',
 			userId: getUser().id
 		});
+		await createScene(renderer, socket);
 
 		socket.emit('debug', 'Controller connected.');
 
@@ -29,7 +30,6 @@
 		const overlay = document.getElementById('viewer-overlay');
 		overlay.style.display = 'none';
 		rendererEl.appendChild(renderer.domElement);
-		await createScene(renderer, socket);
 		rendererEl.appendChild(arButton);
 	});
 
@@ -108,7 +108,7 @@
 	const arButton = ARButton.createButton(renderer, {
 		requiredFeatures: ['hit-test'],
 		domOverlay: {
-			root: document.getElementById('viewer-overlay') as HTMLElement
+			root: document.body
 		}
 	});
 
