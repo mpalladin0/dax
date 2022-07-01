@@ -86,16 +86,16 @@ export class Sound extends PositionalAudio {
 		audioLoader.load(buildURL, (loadedBuffer) => {
 			super.setBuffer(loadedBuffer);
 
-			const context = new AudioContext();
-			const streamDest = context.createMediaStreamDestination();
-			const source = context.createBufferSource();
+			// const context = new AudioContext();
+			// const streamDest = context.createMediaStreamDestination();
+			// const source = context.createBufferSource();
 
-			source.buffer = loadedBuffer;
-			source.connect(streamDest);
-			source.loop = false;
+			// source.buffer = loadedBuffer;
+			// source.connect(streamDest);
+			// source.loop = false;
 
-			super.setMediaStreamSource(streamDest.stream);
-			super.source = source;
+			// super.setMediaStreamSource(streamDest.stream);
+			// super.source = source;
 
 			// socket.on('start sound', (at: number) => {
 			// 	if (this.isPlaying) return;
@@ -106,8 +106,10 @@ export class Sound extends PositionalAudio {
 
 			this.setBuffer(loadedBuffer);
 			this.socket.on('start sound', (at: number) => {
-				if (this.isPlaying) return;
-				this.source?.start(0, at);
+				this.play();
+				// if (this.isPlaying) return;
+
+				// this.source?.start(0, at);
 				// this.play();
 			});
 		});

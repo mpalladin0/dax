@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls.js';
 // import { Phone } from '../phone/Phone';
+import { PositionalAudioHelper } from 'three/examples/jsm/helpers/PositionalAudioHelper.js';
 import { Coordinator } from './cordinator/Coordinator';
 import { makeCamera, type Camera } from './makeCamera';
 import { makeHumanModel } from './makeHumanModel';
@@ -11,6 +12,7 @@ import { makeScene } from './makeScene';
 import { makeTexture } from './makeTexture';
 import { daxrender } from './render';
 import { makeSoundMesh } from './sound/makeSoundMesh';
+
 /**
  * https://threejs.org/examples/#misc_controls_transform
  */
@@ -42,6 +44,7 @@ export class Space {
 	setHumanModelOpacity: (amount: number) => void;
 	origin: THREE.Vector3;
 	mesh!: THREE.Mesh<THREE.BoxGeometry, THREE.MeshBasicMaterial>;
+	helper: PositionalAudioHelper;
 	// soundMesh: THREE.Mesh<THREE.BoxGeometry, THREE.MeshBasicMaterial>;
 
 	constructor({ socket }: { socket: DaxSocket }) {
@@ -77,6 +80,7 @@ export class Space {
 			current.setFromEuler(this.currentCameraEuler);
 
 			this.setHumanModelOpacity(0.15);
+			this.mesh.add(this.coordinator.get({ name: 'all_falls_down' }));
 
 			this.phoneXrActive = true;
 		});
@@ -253,7 +257,7 @@ export class Space {
 			url: 'all_falls_down.mp3'
 		});
 
-		// this.scene.add(sound);
+		this.helper = new PositionalAudioHelper(this.coordinator.get({ name: 'all_falls_down' })!);
 
 		makeSoundMesh().then((res) => {
 			this.mesh = res;
@@ -263,6 +267,7 @@ export class Space {
 
 		socket?.on('xr active', () => {
 			this.phoneXrActive = true;
+			this.mesh.add(this.helper);
 		});
 
 		/** Phone Controls */
@@ -296,6 +301,7 @@ export class Space {
 		this.renderer.render(this.scene, this.camera);
 		if (this.phoneXrActive) {
 			this.camera.position.lerp(new THREE.Vector3(0, 2.5, 8.5), 0.02);
+			this.helper.update();
 		}
 		window.requestAnimationFrame(this.renderLoop);
 	};

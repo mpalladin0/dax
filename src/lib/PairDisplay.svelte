@@ -117,25 +117,12 @@
 
 <div id="viewer-overlay">
 	<div id="viewer" bind:this={rendererEl} />
-</div>
 
-{#if !paired}
-	<div style="color: transparent">
-		<div id="reader" width="600px" />
-		<button on:click={startScanner}>Pair</button>
-		<h1>Not paired</h1>
-		<h1>Not paired</h1>
-		<h1>Not paired</h1>
-		<h1>Not paired</h1>
-		<h1>Not paired</h1>
-		<h1>Not paired</h1>
-		<h1>Not paired</h1>
-		<h1>Not paired</h1>
-		<h1>Not paired</h1>
-		<h1>Not paired</h1>
-		<h1>Not paired</h1>
-		<h1>Not paired</h1>
-		<h1>Not paired</h1>
-		<h1>Not paired</h1>
-	</div>
-{/if}
+	{#if !paired}
+		<div style="color: transparent">
+			<div id="reader" width="600px" />
+			<button on:click={startScanner}>Pair</button>
+			<h1>Not paired</h1>
+		</div>
+	{/if}
+</div>
