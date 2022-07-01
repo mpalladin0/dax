@@ -11,6 +11,7 @@ const memoizeSocket = ({ userId, type }: { userId: string; type: SocketType }): 
 			console.log('Creating new socket..');
 			const connectionType = `${type.toLowerCase()} connection`;
 			const socket = io('https://dax-server.michaelpalladino.io', {
+				withCredentials: true,
 				extraHeaders: {
 					userid: userId,
 					connection_type: type.toLowerCase()
