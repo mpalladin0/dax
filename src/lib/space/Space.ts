@@ -80,7 +80,7 @@ export class Space {
 			current.setFromEuler(this.currentCameraEuler);
 
 			this.setHumanModelOpacity(0.15);
-			this.mesh.add(this.coordinator.get({ name: 'all_falls_down' }));
+			// this.mesh.add(this.helper);
 
 			this.phoneXrActive = true;
 		});
@@ -257,9 +257,15 @@ export class Space {
 			url: 'all_falls_down.mp3'
 		});
 
-		this.helper = new PositionalAudioHelper(this.coordinator.get({ name: 'all_falls_down' })!);
+		this.helper = new PositionalAudioHelper(sound);
 
-		makeSoundMesh().then((res) => {
+		makeSoundMesh(
+			undefined,
+			this.coordinator.get({
+				name: 'all_falls_down'
+			})!,
+			this.helper
+		).then((res) => {
 			this.mesh = res;
 			this.mesh.add(sound);
 			this.scene.add(this.mesh);

@@ -2,8 +2,14 @@ import { getSocket, type DaxSocket } from '$lib/hooks/getSocket';
 import { getUser } from '$lib/hooks/getUser';
 import { isMobile } from '$lib/utils/isMobile';
 import * as THREE from 'three';
+import type { PositionalAudioHelper } from 'three/examples/jsm/helpers/PositionalAudioHelper';
+import type { Sound } from './Sound';
 
-export const makeSoundMesh = async (socketRef?: DaxSocket) => {
+export const makeSoundMesh = async (
+	socketRef?: DaxSocket,
+	sound?: Sound,
+	helper?: PositionalAudioHelper
+) => {
 	const geometry = new THREE.BoxBufferGeometry(0.2, 0.2, 0.2);
 	const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
 	const mesh = new THREE.Mesh(geometry, material);
@@ -31,6 +37,7 @@ export const makeSoundMesh = async (socketRef?: DaxSocket) => {
 
 	const origin = new THREE.Vector3(0, 0, 0);
 	const newPosition = new THREE.Vector3(0, 0, 0);
+	if (helper && sound) helper.add(sound);
 
 	socket.on('sound placement from controller', (position: any) => {
 		console.log(position);
@@ -42,12 +49,16 @@ export const makeSoundMesh = async (socketRef?: DaxSocket) => {
 			mesh.position.x = 0;
 			mesh.position.y = 0;
 			mesh.position.z = 0;
+			sound ? sound.setDirectionalCone(360, 360, 0.1) : null;
 		} else {
 			mesh.position.x = position.x * 10;
 			mesh.position.y = position.y * 10;
 			mesh.position.z = position.z * 10;
+			sound ? sound.setDirectionalCone(90, 120, 0.1) : null;
 		}
 
+		helper ? helper.update() : null;
+		sound ? sound.lookAt(origin) : null;
 		mesh.lookAt(origin);
 	});
 
