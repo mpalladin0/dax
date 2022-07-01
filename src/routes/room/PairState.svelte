@@ -30,6 +30,7 @@
 	};
 
 	onMount(async () => {
+		if (room === undefined) return;
 		const socket = await getSocket({
 			type: 'DESKTOP',
 			userId: getUser().id

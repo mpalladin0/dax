@@ -3,10 +3,9 @@
 	import { onMount } from 'svelte';
 	import { WebGLRenderer } from 'three';
 	import { ARButton } from 'three/examples/jsm/webxr/ARButton.js';
+	import { getSocket, type DaxSocket } from './hooks/getSocket';
+	import { getUser } from './hooks/getUser';
 	import { createScene } from './phone/XRScene';
-	import { getConnection } from './utils/getConnection';
-
-	const connection = getConnection();
 
 	const { devicePixelRatio, innerHeight, innerWidth } = window;
 	const renderer = new WebGLRenderer({ antialias: true, alpha: true });
@@ -17,13 +16,50 @@
 	let html5QrCode: Html5Qrcode;
 	const config = { fps: 10, qrbox: { width: 250, height: 250 } };
 
-	onMount(() => {
+	let socket: DaxSocket;
+	onMount(async () => {
+		socket = await getSocket({
+			type: 'CONTROLLER',
+			userId: getUser().id
+		});
+
+		socket.emit('debug', 'Controller connected.');
+
 		html5QrCode = new Html5Qrcode('reader');
+		const overlay = document.getElementById('viewer-overlay');
+		overlay.style.display = 'none';
+		rendererEl.appendChild(renderer.domElement);
+		await createScene(renderer, socket);
+		rendererEl.appendChild(arButton);
 	});
 
 	function onScanSuccess(rendered, decoded) {
 		const room = decoded.decodedText;
-		connection.socket?.emit('pair controller to room', room);
+
+		if (room === undefined) return;
+		socket.emit(
+			'pair controller to room',
+			room,
+			({
+				status,
+				message,
+				context
+			}: {
+				status: string;
+				message: string;
+				context: {
+					roomId: string;
+				};
+			}) => {
+				if (status === 'ok') {
+					socket.emit('debug', `[Controller -- Pair Success] ${context.roomId}`);
+				}
+
+				if (status === 'error') {
+					socket.emit('debug', message);
+				}
+			}
+		);
 	}
 	function onScanFail() {}
 
@@ -31,21 +67,32 @@
 		html5QrCode
 			.start({ facingMode: { exact: 'environment' } }, config, onScanSuccess, onScanFail)
 			.then(() => {
-				connection.socket?.emit('debug', '[Controller] Scanner started');
-
-				connection.socket?.on('controller paired', async () => {
+				socket.emit('debug', '[Controller] Scanner started');
+				socket.on('controller paired', async (roomId: string) => {
 					await html5QrCode.stop().then(() => {
 						html5QrCode.clear();
-						paired = true;
+						// paired = true
 					});
-					// connection.socket?.emit('debug', 'controller paired!');
+					socket.emit('debug', `[Controller] Paired to room: ${roomId}`);
 					const overlay = document.getElementById('viewer-overlay');
 					overlay.style.display = 'block';
-
 					paired = true;
-
 					return;
 				});
+
+				// socket?.on('controller paired', async () => {
+				// 	await html5QrCode.stop().then(() => {
+				// 		html5QrCode.clear();
+				// 		paired = true;
+				// 	});
+				// 	// connection.socket?.emit('debug', 'controller paired!');
+				// 	const overlay = document.getElementById('viewer-overlay');
+				// 	overlay.style.display = 'block';
+
+				// 	paired = true;
+
+				// 	return;
+				// });
 
 				// connection.socket?.on('controller disconnected', async () => {
 				// 	paired = false;
@@ -66,13 +113,6 @@
 	});
 
 	let rendererEl: HTMLDivElement;
-	onMount(() => {
-		const overlay = document.getElementById('viewer-overlay');
-		overlay.style.display = 'none';
-		rendererEl.appendChild(renderer.domElement);
-		createScene(renderer, connection);
-		rendererEl.appendChild(arButton);
-	});
 </script>
 
 <div id="viewer-overlay">

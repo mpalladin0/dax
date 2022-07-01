@@ -1,3 +1,4 @@
+import type { DaxSocket } from '$lib/hooks/getSocket';
 import { makeSoundMesh } from '$lib/space/sound/makeSoundMesh';
 import * as THREE from 'three';
 import {
@@ -8,9 +9,8 @@ import {
 	Scene,
 	WebGLRenderer
 } from 'three';
-import type { Connection } from '../Connection';
 
-export const createScene = (renderer: WebGLRenderer, connection: Connection) => {
+export const createScene = async (renderer: WebGLRenderer, socket: DaxSocket) => {
 	const scene = new Scene();
 
 	document.body.style.margin = '0';
@@ -18,8 +18,8 @@ export const createScene = (renderer: WebGLRenderer, connection: Connection) => 
 	document.body.style.overflow = 'hidden';
 
 	let room: string;
-	connection.socket?.on('controller paired', (roomId: string) => {
-		connection.socket?.emit('debug', room);
+	socket.on('controller paired', (roomId: string) => {
+		socket.emit('debug', room);
 		room = roomId;
 	});
 
@@ -27,7 +27,7 @@ export const createScene = (renderer: WebGLRenderer, connection: Connection) => 
 
 	const boxGeometry = new BoxBufferGeometry(0.00762, 0.16002, 0.077978);
 	const boxMaterial = new MeshBasicMaterial({ color: 0xff0000 });
-	const box = makeSoundMesh();
+	const box = await makeSoundMesh();
 	box.scale.multiplyScalar(0.5);
 	box.position.z = -3;
 
@@ -62,11 +62,11 @@ export const createScene = (renderer: WebGLRenderer, connection: Connection) => 
 	}
 
 	function onSelectStart() {
-		connection.socket?.emit('finger tap on', room);
+		socket.emit('finger tap on', room);
 		selected = true;
 	}
 	function onSelectEnd() {
-		connection.socket?.emit('finger tap off', room);
+		socket.emit('finger tap off', room);
 		selected = false;
 	}
 
@@ -78,7 +78,7 @@ export const createScene = (renderer: WebGLRenderer, connection: Connection) => 
 
 	if (navigator.xr) {
 		navigator.xr.isSessionSupported('immersive-ar').then((isSupported) => {
-			connection.socket.emit('is phone supported', isSupported);
+			socket.emit('is phone supported', isSupported);
 		});
 	}
 
@@ -93,12 +93,12 @@ export const createScene = (renderer: WebGLRenderer, connection: Connection) => 
 				cache[n] = state;
 
 				if (state === true) {
-					connection.socket.emit('xr active', room);
+					socket.emit('xr active', room);
 					const session = renderer.xr.getSession();
 
 					if (!session) return;
 				}
-				if (state === false) connection.socket.emit('xr inactive', room);
+				if (state === false) socket.emit('xr inactive', room);
 
 				return state;
 			}
@@ -135,7 +135,7 @@ export const createScene = (renderer: WebGLRenderer, connection: Connection) => 
 						r_y: box.rotation.y,
 						r_z: box.rotation.z
 					};
-					connection.socket.emit('sound placement from controller', { room, position });
+					socket.emit('sound placement from controller', { room, position });
 				}
 			}
 

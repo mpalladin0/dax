@@ -1,9 +1,12 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+
 	import { onMount } from 'svelte';
 	import { generateUUID } from 'three/src/math/MathUtils.js';
 	import { getSocket, type DaxSocket } from './hooks/getSocket';
 	import { getUser, type User } from './hooks/getUser';
+
+	export let socket: DaxSocket;
 
 	let hasRoom: boolean = false;
 	let hasRoomId: string;
@@ -13,9 +16,8 @@
 	// let socket: DaxSocket;
 
 	let generatedUUID;
-	let socket: DaxSocket;
-	onMount(() => {
-		socket = getSocket({
+	onMount(async () => {
+		socket = await getSocket({
 			type: 'DESKTOP',
 			userId: getUser().id
 		});
@@ -24,8 +26,43 @@
 	});
 
 	async function onMakeRoom() {
-		await goto(`/room/${generatedUUID}`);
+		socket.emit(
+			'create room',
+			{
+				roomId: generatedUUID
+			},
+			async ({ status, message }: { status: string; message: string }) => {
+				if (status === 'ok') {
+					await goto(`/room/${generatedUUID}`);
+				}
+
+				if (status === 'error') {
+					if (message === 'user already has a room') {
+						socket.emit(
+							'leave room',
+							async ({ status, message }: { status: string; message: string }) => {
+								if (status === 'ok') {
+									onMakeRoom();
+								} else {
+									throw new Error(status + ' ' + message);
+								}
+							}
+						);
+					}
+					console.log('[Error] ', message);
+				}
+			}
+		);
 	}
+
+	onMount(async () => {
+		const socket = await getSocket({
+			type: 'DESKTOP',
+			userId: getUser().id
+		});
+
+		console.log('Resolved', socket);
+	});
 </script>
 
 <div class="neon-text center" style="pointer-events: none">

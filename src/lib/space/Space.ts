@@ -41,7 +41,7 @@ export class Space {
 	phoneXrActive: boolean;
 	setHumanModelOpacity: (amount: number) => void;
 	origin: THREE.Vector3;
-	mesh: THREE.Mesh<THREE.BoxGeometry, THREE.MeshBasicMaterial>;
+	mesh!: THREE.Mesh<THREE.BoxGeometry, THREE.MeshBasicMaterial>;
 	// soundMesh: THREE.Mesh<THREE.BoxGeometry, THREE.MeshBasicMaterial>;
 
 	constructor({ socket }: { socket: DaxSocket }) {
@@ -255,10 +255,11 @@ export class Space {
 
 		// this.scene.add(sound);
 
-		this.mesh = makeSoundMesh();
-		this.mesh.add(sound);
-
-		this.scene.add(this.mesh);
+		makeSoundMesh().then((res) => {
+			this.mesh = res;
+			this.mesh.add(sound);
+			this.scene.add(this.mesh);
+		});
 
 		socket?.on('xr active', () => {
 			this.phoneXrActive = true;

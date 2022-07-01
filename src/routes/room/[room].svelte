@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { getSocket } from '$lib/hooks/getSocket';
+	import { getUser } from '$lib/hooks/getUser';
 
 	import { onMount } from 'svelte';
 
@@ -11,42 +12,19 @@
 	export let userId;
 	let romId = roomId;
 
-	onMount(() => {
-		const socket = getSocket({
+	onMount(async () => {
+		const socket = await getSocket({
 			type: 'DESKTOP',
-			userId: userId
+			userId: getUser().id
 		});
 
-		socket.emit('join room', roomId);
+		if (roomId === undefined) {
+			console.log('Room is undefined.');
+			return;
+		}
+
+		socket.emit('join room', romId);
 	});
-
-	// onMount(() => {
-	// 	// const user = getUser();
-	// 	// user.connection.socket?.emit('join room', {
-	// 	// 	roomId,
-	// 	// 	userId: user.id
-	// 	// });
-	// });
-
-	// let qrCanvasContainer: HTMLDivElement;
-
-	// onMount(() => {
-	// 	const url = `https://dax.michaelpalladino.io/pair/${id}`;
-	// 	const roomId = romId.id;
-	// 	QRCode.toCanvas(
-	// 		roomId,
-	// 		{ errorCorrectionLevel: 'L', margin: 1, width: 350 },
-	// 		(err, canvas: HTMLCanvasElement) => {
-	// 			console.log(canvas);
-	// 			console.log(err);
-	// 			// qrCanvas = canvas;
-	// 			qrCanvasContainer.appendChild(canvas);
-	// 			// qrCanvas.appendChild(canvas);
-	// 			// const container = document.getElementById('qr-container');
-	// 			// container!.appendChild(canvas);
-	// 		}
-	// 	);
-	// });
 </script>
 
 <main>

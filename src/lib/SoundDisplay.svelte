@@ -1,36 +1,29 @@
 <script lang="ts">
 	import { onDestroy, onMount } from 'svelte';
 	import * as THREE from 'three';
+	import { getSocket } from './hooks/getSocket';
 
-	import { getSocket, type DaxSocket } from './hooks/getSocket';
 	import { getUser, type User } from './hooks/getUser';
 	import { Space } from './space/Space';
-	import { getConnection } from './utils/getConnection';
 
 	export let roomId;
 
 	const clock = new THREE.Clock();
 
-	const connection = getConnection();
 	// const user = getUser();
 
-	let socket: DaxSocket;
 	let finishedCountdown = false;
 	let timeRemaining = 4;
 	let displayRemaining = 4;
 
 	let space: Space, sound, el, user: User;
-	onMount(() => {
-		user = getUser();
-
-		socket = getSocket({
-			userId: user.id,
-			type: 'DESKTOP'
+	onMount(async () => {
+		const socket = await getSocket({
+			type: 'DESKTOP',
+			userId: getUser().id
 		});
+		// user = getUser();
 		space = new Space({ socket });
-	});
-
-	onMount(() => {
 		const child = space.domElement;
 		el.appendChild(child);
 

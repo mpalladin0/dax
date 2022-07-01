@@ -25,12 +25,14 @@ export class Connection extends EventDispatcher {
 
 		this.socket.on('connect', () => {
 			if (this.isMobile) this.onMobileConnection();
-			else this.on;
+			// else this.on;
 		});
 
 		this.socket.on('disconnect', () => {
 			this.socket?.disconnect();
 		});
+
+		throw new Error('Depreciated, use getSocket instead.');
 	}
 
 	private onMobileConnection() {

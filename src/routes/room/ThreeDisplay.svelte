@@ -4,18 +4,21 @@
 
 	import { Space } from '$lib/space/Space';
 
-	import { getSocket, type DaxSocket } from '$lib/hooks/getSocket';
+	import { getSocket } from '$lib/hooks/getSocket';
 	import { getUser } from '$lib/hooks/getUser';
 	import { onMount } from 'svelte';
 	import { PositionalAudioHelper } from 'three/examples/jsm/helpers/PositionalAudioHelper.js';
 	// import { PositionalAudioHelper } from 'three/examples/jsm/helpers/PositionalAudioHelper';
 	// @ts-ignore
 
-	let socket: DaxSocket;
+	const origin = new THREE.Vector3(0, 0, 0);
+	const newPosition = new THREE.Vector3(0, 0, 0);
+
 	let space: Space, sound: Sound, helper: PositionalAudioHelper;
 
-	onMount(() => {
-		socket = getSocket({
+	let el;
+	onMount(async () => {
+		const socket = await getSocket({
 			type: 'DESKTOP',
 			userId: getUser().id
 		});
@@ -26,16 +29,9 @@
 
 		space.renderLoop();
 		helper = new PositionalAudioHelper(sound);
-	});
 
-	onMount(() => {
-		socket.on('xr active', () => space.mesh.add(helper));
-	});
-
-	const origin = new THREE.Vector3(0, 0, 0);
-	const newPosition = new THREE.Vector3(0, 0, 0);
-	onMount(() => {
 		socket.on('sound placement from controller', (position: any) => {
+			console.log(position);
 			// console.log(position);
 			if (!sound) return;
 			newPosition.set(position.x, position.y, position.z);
@@ -62,10 +58,8 @@
 			space.light.lookAt(origin);
 			helper.update();
 		});
-	});
 
-	let el;
-	onMount(() => {
+		socket.on('xr active', () => space.mesh.add(helper));
 		const child = space.domElement;
 		el.appendChild(child);
 	});

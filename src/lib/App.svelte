@@ -1,28 +1,60 @@
 <script lang="ts">
+	import { browser } from '$app/env';
+
 	import { onMount } from 'svelte';
 
 	import PairDisplay from '../lib/PairDisplay.svelte';
 	import SoundDisplay from '../lib/SoundDisplay.svelte';
+	import { getSocket, type DaxSocket } from './hooks/getSocket';
+	import { getUser } from './hooks/getUser';
 	import MakeOrJoinRoom from './MakeOrJoinRoom.svelte';
-	import { getConnection } from './utils/getConnection';
 
-	const connection = getConnection();
+	function isMobile() {
+		if (!browser) return false;
+		if (
+			/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+		) {
+			return true;
+		} else return false;
+	}
 
-	if (connection.isMobile) {
-		// console.log('Mobile ');
+	function isDesktop() {
+		if (!browser) return false;
+		if (
+			/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+		) {
+			return false;
+		} else return true;
 	}
 
 	onMount(() => {
-		if (connection.isDesktop) {
+		if (isDesktop()) {
 			document.body.style.backgroundColor = 'black';
+		}
+	});
+
+	let socket: DaxSocket;
+	onMount(async () => {
+		if (isDesktop()) {
+			socket = await getSocket({
+				type: 'DESKTOP',
+				userId: getUser().id
+			});
+		}
+
+		if (isMobile()) {
+			socket = await getSocket({
+				type: 'PHONE',
+				userId: getUser().id
+			});
 		}
 	});
 </script>
 
-{#if connection.isDesktop}
+{#if isDesktop()}
 	<main>
-		<MakeOrJoinRoom />
-		<SoundDisplay />
+		<MakeOrJoinRoom {socket} />
+		<SoundDisplay {socket} />
 		<!-- 
     <p>
       Visit <a href="https://svelte.dev">svelte.dev</a> to learn how to build Svelte
@@ -36,7 +68,7 @@
 	</main>
 {/if}
 
-{#if connection.isMobile}
+{#if isMobile()}
 	<main>
 		<PairDisplay />
 	</main>

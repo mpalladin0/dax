@@ -39,7 +39,8 @@ export class Coordinator {
 			new Sound({
 				name: name,
 				url: url,
-				listener: this.listener
+				listener: this.listener,
+				socket: this.socket
 			})
 		);
 

@@ -1,5 +1,4 @@
-import { getSocket, type DaxSocket } from '$lib/hooks/getSocket';
-import { getUser } from '$lib/hooks/getUser';
+import { type DaxSocket } from '$lib/hooks/getSocket';
 import * as THREE from 'three';
 import { PositionalAudio } from 'three';
 
@@ -31,11 +30,13 @@ export class Sound extends PositionalAudio {
 	constructor({
 		name,
 		url,
-		listener
+		listener,
+		socket
 	}: {
 		name: string;
 		url: string;
 		listener: THREE.AudioListener;
+		socket: DaxSocket;
 	}) {
 		super(listener);
 		this.name = name;
@@ -43,6 +44,7 @@ export class Sound extends PositionalAudio {
 		// 	type: 'DESKTOP',
 		// 	userId: getUser().id
 		// });
+		this.socket = socket;
 		this.loadBufferFromStream();
 		this.loadBuffer({ url });
 
@@ -72,83 +74,42 @@ export class Sound extends PositionalAudio {
 		// });
 	};
 	public loadBuffer = async ({ url }: { url: string }) => {
-		const socket = await getSocket({
-			type: 'DESKTOP',
-			userId: getUser().id
-		});
+		// const socket = await getSocket({
+		// 	type: 'DESKTOP',
+		// 	userId: getUser().id
+		// });
 
 		const audioLoader = new THREE.AudioLoader();
 
-		// const clock = new THREE.Clock();
-		// let current = clock.getElapsedTime();
-		// let delta = clock.getDelta();
-		// const getElapsedTime = () => {
-		// 	delta = clock.getDelta();
-		// 	current = current + delta;
-		// 	this.connection.socket?.emit('sound elapsed time', current);
-		// };
-
-		socket.on('start sound', (at: number) => {
-			if (this.isPlaying) return;
-			if (!this.isPlaying) {
-				this.source.start(0, at);
-			}
-		});
-
-		// this.connection.socket.on('start sound', (at: number) => {
-		// 	if (this.isPlaying) return;
-
-		// 	console.log('Starting sound at ', at);
-
-		// 	if (!this.isPlaying) {
-		// 		this.source.start(0, at);
-		// 	}
-
-		// 	this.connection.socket?.emit("destroy room")
-
-		// 	// this.onEnded = () => {
-		// 	// 	this.connection.socket?.emit('sound ended');
-		// 	// 	this.connection.socket?.emit('destroy room');
-		// 	// };
-
-		// 	// this.source?.onended =
-
-		// 	// console.log('Requesting to play sound, need elapsed time first..');
-
-		// 	// this.connection.socket?.emit('get elapsed time');
-
-		// 	// this.connection.socket?.on('elapsed time', () => {
-		// 	// 	console.log('Elapsed time so far...');
-		// 	// });
-
-		// 	// clock.start();
-		// 	// this.source.
-		// 	// this.play();
-		// 	// getElapsedTime();
-		// });
-
-		const buildURL = `https://dax.michaelpalladino.io/assets/sounds/${url}`;
+		const buildURL = `https://dax-mobile.michaelpalladino.io/assets/sounds/${url}`;
 
 		audioLoader.load(buildURL, (loadedBuffer) => {
 			super.setBuffer(loadedBuffer);
 
 			const context = new AudioContext();
 			const streamDest = context.createMediaStreamDestination();
-			// const buffer = context.createBuffer(1, loadedBuffer.length, loadedBuffer.sampleRate);
 			const source = context.createBufferSource();
 
 			source.buffer = loadedBuffer;
 			source.connect(streamDest);
 			source.loop = false;
-			// source.start();
-
-			// const playback = document.createElement('button');
-
-			// document.body.appendChild(playback);
 
 			super.setMediaStreamSource(streamDest.stream);
-
 			super.source = source;
+
+			// socket.on('start sound', (at: number) => {
+			// 	if (this.isPlaying) return;
+			// 	if (!this.isPlaying) {
+			// 		this.source?.start(0, at);
+			// 	}
+			// });
+
+			this.setBuffer(loadedBuffer);
+			this.socket.on('start sound', (at: number) => {
+				if (this.isPlaying) return;
+				this.source?.start(0, at);
+				// this.play();
+			});
 
 			// playback.innerText = 'start';
 			// playback.onclick = () => {
@@ -166,44 +127,5 @@ export class Sound extends PositionalAudio {
 
 	public get currentPosition() {
 		return super.position;
-	}
-}
-
-export default class SoundStream {
-	// duration: number;
-	mediaElement: HTMLAudioElement;
-	constructor(url) {
-		// this.duration = 0;
-		this.mediaElement = new Audio(url);
-		this.mediaElement.loop = true;
-		this.mediaElement.preload = 'auto';
-		this.mediaElement.crossOrigin = 'anonymous';
-		this.mediaElement.onloadstart = (ev) => {
-			// console.log('Loading started: ', ev);
-		};
-		this.mediaElement.onloadeddata = (ev) => {
-			// console.log('Metadata loaded', ev);
-		};
-
-		this.mediaElement.onplay = (ev) => {
-			// console.log('Is playing', ev);
-		};
-		// var self = this;
-		// this.mediaElement.addEventListener('loadedmetadata', function (_event) {
-		// 	var dur = self.mediaElement.duration;
-		// 	self.duration = dur;
-		// 	// durationCallback(dur);
-		// });
-	}
-
-	play() {
-		this.mediaElement.play();
-	}
-
-	setTime(time) {
-		let newTime = time / 1000;
-		if (!newTime.isNan && newTime != undefined && isFinite(newTime)) {
-			this.mediaElement.currentTime = newTime;
-		}
 	}
 }
