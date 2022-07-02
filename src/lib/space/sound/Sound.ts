@@ -78,8 +78,10 @@ export class Sound extends PositionalAudio {
 		dispatchEvent(bufferLoadedEvent);
 
 		this.setBuffer(buffer);
+
+		unlockAudioContext(this.context);
 		this.socket.on('start sound', (at: number) => {
-			this.play();
+			super.play();
 			// if (this.isPlaying) return;
 
 			// this.source?.start(0, at);
