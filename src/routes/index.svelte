@@ -32,12 +32,6 @@
 		LogRocket.identify(getUser().id);
 
 		Sentry.setUser({ id: getUser().id });
-
-		//@ts-ignore
-		undefinedFunc();
-
-		//@ts-ignore
-		undefinedFunc2();
 	});
 </script>
 
