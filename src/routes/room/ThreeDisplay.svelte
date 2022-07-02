@@ -1,7 +1,4 @@
 <script lang="ts">
-	import type { Sound } from '$lib/space/sound/Sound';
-	import * as THREE from 'three';
-
 	import { Space } from '$lib/space/Space';
 
 	import { getSocket } from '$lib/hooks/getSocket';
@@ -9,10 +6,8 @@
 	import { onMount } from 'svelte';
 	// @ts-ignore
 
-	const origin = new THREE.Vector3(0, 0, 0);
-	const newPosition = new THREE.Vector3(0, 0, 0);
-
-	let space: Space, sound: Sound, helper: PositionalAudioHelper;
+	// let space: Space,
+	// let sound: Sound;
 
 	let el;
 	onMount(async () => {
@@ -20,14 +15,14 @@
 			type: 'DESKTOP',
 			userId: getUser().id
 		});
-		space = new Space({ socket });
-		sound = space.coordinator.get({
-			name: 'alright'
-		}) as Sound;
+		const space = new Space({ socket });
+		// const sound = space.coordinator.get({
+		// 	name: 'alright'
+		// }) as Sound;
 
 		space.renderLoop();
 
-		socket.on('xr active', () => space.mesh.add(helper));
+		// socket.on('xr active', () => space.mesh.add(helper));
 		const child = space.domElement;
 		el.appendChild(child);
 	});
