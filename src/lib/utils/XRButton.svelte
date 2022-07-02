@@ -86,15 +86,9 @@
 </script>
 
 <div class="container">
-	{#if !bufferLoaded}
-		<button class="start-session-button loading-buffer">Loading...</button>
-	{/if}
-
-	{#if bufferLoaded}
-		<button class="start-session-button loading-buffer" on:click={() => activateXR()}
-			>Begin Experience</button
-		>
-	{/if}
+	<button class="start-session-button loading-buffer" on:click={() => activateXR()}
+		>Begin Experience</button
+	>
 </div>
 
 <style>
