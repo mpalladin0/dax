@@ -10,7 +10,15 @@ const config = {
 	kit: {
 		adapter: adapter(),
 		vite: {
-			assetsInclude: ["**/*.gltf", "**/*.mp3", "**/*.glb",]
+			assetsInclude: ["**/*.gltf", "**/*.mp3", "**/*.glb",],
+			build: {
+				rollupOptions: {
+					external: [
+						"@sentry/browser"
+					]
+				}
+			}
+			
 		}
 	},
 	files: {
