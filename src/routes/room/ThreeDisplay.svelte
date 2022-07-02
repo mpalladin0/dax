@@ -7,8 +7,6 @@
 	import { getSocket } from '$lib/hooks/getSocket';
 	import { getUser } from '$lib/hooks/getUser';
 	import { onMount } from 'svelte';
-	import { PositionalAudioHelper } from 'three/examples/jsm/helpers/PositionalAudioHelper.js';
-	// import { PositionalAudioHelper } from 'three/examples/jsm/helpers/PositionalAudioHelper';
 	// @ts-ignore
 
 	const origin = new THREE.Vector3(0, 0, 0);
@@ -24,14 +22,8 @@
 		});
 		space = new Space({ socket });
 		sound = space.coordinator.get({
-			name: 'all_falls_down'
+			name: 'alright'
 		}) as Sound;
-
-		const helper = new PositionalAudioHelper(sound);
-
-		socket.on('xr active', () => {
-			space.mesh.add(helper);
-		});
 
 		space.renderLoop();
 

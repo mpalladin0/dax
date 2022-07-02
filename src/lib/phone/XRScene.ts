@@ -3,7 +3,13 @@ import { makeSoundMesh } from '$lib/space/sound/makeSoundMesh';
 import * as THREE from 'three';
 import { PerspectiveCamera, PositionalAudio, Scene, WebGLRenderer } from 'three';
 
-export const createScene = async (renderer: WebGLRenderer, socket: DaxSocket) => {
+export const createScene = async (
+	renderer: WebGLRenderer,
+	socket: DaxSocket,
+	session?: XRSession,
+	viewerSpace?: XRReferenceSpace,
+	localReferenceSpace?: XRReferenceSpace
+) => {
 	const scene = new Scene();
 
 	document.body.style.margin = '0';
@@ -54,9 +60,14 @@ export const createScene = async (renderer: WebGLRenderer, socket: DaxSocket) =>
 		controllers.push(controller);
 	}
 
-	function onSelectStart() {
+	async function onSelectStart() {
 		socket.emit('finger tap on', room);
 		selected = true;
+
+		if (session) {
+			const hitTestSource = await session.requestHitTestSource({ space: viewerSpace })!;
+			socket.emit('debug', hitTestSource);
+		}
 	}
 	function onSelectEnd() {
 		socket.emit('finger tap off', room);
@@ -128,6 +139,7 @@ export const createScene = async (renderer: WebGLRenderer, socket: DaxSocket) =>
 						r_y: box.rotation.y,
 						r_z: box.rotation.z
 					};
+
 					socket.emit('sound placement from controller', { room, position });
 				}
 			}
@@ -137,6 +149,9 @@ export const createScene = async (renderer: WebGLRenderer, socket: DaxSocket) =>
 	}
 	// @ts-ignore
 	renderer.setAnimationLoop(renderLoop);
+	// debug
+	renderer.xr.setAnimationLoop(renderLoop);
+	renderer.xr.setReferenceSpaceType('local');
 
 	return scene;
 };

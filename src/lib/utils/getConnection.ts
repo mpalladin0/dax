@@ -6,7 +6,7 @@ const memoizeConnection = () => {
 		if (cache[0]) {
 			return cache[0];
 		} else {
-			let connection = new Connection('https://dax-server.michaelpalladino.io');
+			let connection = new Connection('https://dax.server.michaelpalladino.io');
 			cache[0] = connection;
 			return connection;
 		}

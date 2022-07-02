@@ -2,11 +2,12 @@
 	import { Html5Qrcode } from 'html5-qrcode';
 	import { onMount } from 'svelte';
 	import { WebGLRenderer } from 'three';
-	import { ARButton } from 'three/examples/jsm/webxr/ARButton.js';
 	// import WebXRPolyfill from 'webxr-polyfill.js';
 	import { getSocket, type DaxSocket } from './hooks/getSocket';
 	import { getUser } from './hooks/getUser';
 	import { createScene } from './phone/XRScene';
+	import { ARButton } from './utils/ARButton';
+	import XrButton from './utils/XRButton.svelte';
 
 	const { devicePixelRatio, innerHeight, innerWidth } = window;
 	const renderer = new WebGLRenderer({ antialias: true, alpha: true });
@@ -33,12 +34,14 @@
 
 		socketReady = true;
 		await createScene(renderer, socket);
-		arButton = ARButton.createButton(renderer, {
-			requiredFeatures: ['hit-test'],
-			domOverlay: {
-				root: rendererEl
-			}
-		});
+
+		ARButton.registerSessionGrantedListener();
+		// arButton = ARButton.createButton(renderer, {
+		// 	requiredFeatures: ['hit-test'],
+		// 	domOverlay: {
+		// 		root: rendererEl
+		// 	}
+		// });
 
 		socket.emit('debug', 'Controller connected.');
 
@@ -122,6 +125,27 @@
 			});
 	}
 
+	async function activateXR() {
+		let session: XRSession;
+		let localReferenceSpace: XRReferenceSpace;
+		let viewerSpace: XRReferenceSpace;
+
+		try {
+			session = await xr.requestSession('immersive-ar', {
+				requiredFeatures: ['hit-test']
+			});
+
+			localReferenceSpace = await session.requestReferenceSpace('local');
+			viewerSpace = await session.requestReferenceSpace('viewer');
+			renderer.xr.setSession(session);
+			renderer.xr.setReferenceSpace(viewerSpace);
+
+			await createScene(renderer, socket, session, viewerSpace, localReferenceSpace);
+		} catch (err) {
+			socket.emit('debug', err);
+		}
+	}
+
 	// let session: XRSession;
 	// let gl: WebGLRenderingContext | WebGL2RenderingContext;
 	// async function createImmersiveSession(xr: XRSystem): Promise<XRSession> {
@@ -181,9 +205,10 @@
 </div>
 <div class="pairing" id="paired">
 	<h1 color="black">Paired to room.</h1>
+	<p>Your phone is now paired to the room.</p>
 	<h3>Click "Start AR" to begin experience.</h3>
 	{#if xrSupported}
-		<!-- <button class="start-session-button" on:click={() => beginSession()}>Begin Experience</button> -->
+		<XrButton {renderer} />
 	{/if}
 	<div id="renderer" />
 </div>
@@ -210,19 +235,5 @@
 	.not-connected {
 		opacity: 50%;
 		cursor: not-allowed;
-	}
-
-	.start-session-button {
-		display: block;
-		width: 100%;
-		border: none;
-		background-color: deepskyblue;
-		color: white;
-		padding: 14px 28px;
-		font-size: 16px;
-		cursor: pointer;
-		text-align: center;
-		border-radius: 1rem;
-		padding: 1rem;
 	}
 </style>

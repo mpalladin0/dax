@@ -26,6 +26,8 @@ export class Coordinator {
 		socket?.on('move sound from phone', (soundName: string, position: SoundPosition) =>
 			this.onMoveFromPhone({ name: soundName, newPosition: position })
 		);
+
+		CordinatorStatic.setInstance(this);
 	}
 
 	public get = ({ name }: { name: string }) => {
@@ -71,4 +73,12 @@ export class Coordinator {
 		name: string;
 		newPosition: SoundPosition;
 	}) => {};
+}
+
+export class CordinatorStatic {
+	static instance: Coordinator;
+
+	static setInstance(cordinator: Coordinator) {
+		this.instance = cordinator;
+	}
 }

@@ -2,6 +2,8 @@
 	import { getSocket } from '$lib/hooks/getSocket';
 
 	import { getUser } from '$lib/hooks/getUser';
+	import type { Coordinator } from '$lib/space/cordinator/Coordinator';
+	import type { Sound } from '$lib/space/sound/Sound';
 
 	import QRCode from 'qrcode';
 	import { onMount } from 'svelte';
@@ -29,6 +31,9 @@
 		}
 	};
 
+	let sound: Sound;
+	let bufferLoaded = false;
+	let coordinator: Coordinator;
 	onMount(async () => {
 		if (room === undefined) return;
 		const socket = await getSocket({
@@ -36,7 +41,15 @@
 			userId: getUser().id
 		});
 
-		appendQRCode(room);
+		addEventListener('buffer loaded', () => {
+			bufferLoaded = true;
+			setTimeout(() => appendQRCode(room), 1000);
+		});
+
+		// coordinator = CordinatorStatic.instance;
+		// sound = coordinator.get({ name: 'alright' })!;
+		// await sound.loadBuffer();
+		// bufferLoaded = coordinator.get({ name: 'alright' })!.bufferLoaded;
 
 		socket.emit('join room', {
 			roomId: room
@@ -58,6 +71,10 @@
 		socket.on('finger off screen', (socketId: string) => {
 			fingerOnScreen = false;
 		});
+
+		// socket.on('buffer loaded', () => {
+		// 	bufferLoaded = true;
+		// });
 
 		const countdown = () => {
 			const elapsed = clock.getDelta().toPrecision(1);
@@ -142,7 +159,7 @@
 
 					{#if !fingerOnScreen}
 						<div class="neon">Rest thumb on phone screen</div>
-						<h5 style="color: white">Now Playing "All Falls Down" by Kanye West</h5>
+						<h5 style="color: white">Now Playing "Alright" by Travis Scott</h5>
 					{/if}
 				{/if}
 				{#if !finishedCountdown}
@@ -180,35 +197,41 @@
 		{/if}
 
 		{#if !isPaired}
-			<div class="neon">Waiting to pair..</div>
-			<center>
-				<div id="qr-container" />
+			{#if !bufferLoaded}
+				<div class="neon">Loading...</div>
+			{:else}
+				<div class="neon">Waiting to pair..</div>
+				<center>
+					<div id="qr-container" />
 
-				<!-- <canvas id="qr-canvas" style="background-color: -50%" /> -->
+					<!-- <canvas id="qr-canvas" style="background-color: -50%" /> -->
 
-				<h5 style="color: white; margin-bottom: 0%; padding-bottom: 0%">Pair your iPhone:</h5>
-				<ol style="color: white; max-width: 32rem; h6">
-					<li>
-						Download <a href="https://apps.apple.com/us/app/webxr-viewer/id1295998056">XR Viewer</a>
-						on the Apple App Store.
-					</li>
-					<li>
-						Visit <a href="https://dax.michaelpalladino.io">dax.michaelpalladino.io</a> from within XR
-						Viewer.
-					</li>
-					<li>Scan the QR Code above on your iPhone.</li>
-				</ol>
-				<p style="color: darkgray; font-size: 0.67em">
-					Safari on iOS doesn't support AR yet, so downloading XR Viewer is required for now.
-				</p>
-				<h5 style="color: white; margin-bottom: 0%; padding-bottom: 0%">Pair your Android:</h5>
-				<ol style="color: white; max-width: 32rem;">
-					<li>
-						Visit <a href="https://dax.michaelpalladino.io/">dax.michaelpalladino.io</a> on your phone.
-					</li>
-					<li>Scan the QR Code above on your Android.</li>
-				</ol>
-			</center>
+					<h5 style="color: white; margin-bottom: 0%; padding-bottom: 0%">Pair your iPhone:</h5>
+					<ol style="color: white; max-width: 32rem; h6">
+						<li>
+							Download <a href="https://apps.apple.com/us/app/webxr-viewer/id1295998056"
+								>XR Viewer</a
+							>
+							on the Apple App Store.
+						</li>
+						<li>
+							Visit <a href="https://dax.michaelpalladino.io">dax.michaelpalladino.io</a> from within
+							XR Viewer.
+						</li>
+						<li>Scan the QR Code above on your iPhone.</li>
+					</ol>
+					<p style="color: darkgray; font-size: 0.67em">
+						Safari on iOS doesn't support AR yet, so downloading XR Viewer is required for now.
+					</p>
+					<h5 style="color: white; margin-bottom: 0%; padding-bottom: 0%">Pair your Android:</h5>
+					<ol style="color: white; max-width: 32rem;">
+						<li>
+							Visit <a href="https://dax.michaelpalladino.io/">dax.michaelpalladino.io</a> on your phone.
+						</li>
+						<li>Scan the QR Code above on your Android.</li>
+					</ol>
+				</center>
+			{/if}
 		{/if}
 	</div>
 

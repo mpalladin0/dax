@@ -253,19 +253,13 @@ export class Space {
 		});
 
 		const sound = this.coordinator.add({
-			name: 'all_falls_down',
-			url: 'all_falls_down.mp3'
+			name: 'alright',
+			url: 'alright.mp3'
 		});
 
 		this.helper = new PositionalAudioHelper(sound);
 
-		makeSoundMesh(
-			undefined,
-			this.coordinator.get({
-				name: 'all_falls_down'
-			})!,
-			this.helper
-		).then((res) => {
+		makeSoundMesh(undefined, sound, this.helper).then((res) => {
 			this.mesh = res;
 			this.mesh.add(sound);
 			this.scene.add(this.mesh);

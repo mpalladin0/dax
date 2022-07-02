@@ -1,4 +1,4 @@
-import { type DaxSocket } from '$lib/hooks/getSocket';
+import type { DaxSocket } from '$lib/hooks/getSocket';
 import * as THREE from 'three';
 import { PositionalAudio } from 'three';
 
@@ -27,6 +27,8 @@ export class Sound extends PositionalAudio {
 	public declare readonly name: string;
 	public isMoving = false;
 	private readonly socket: DaxSocket;
+	public bufferLoaded: boolean = false;
+	public readonly url: string;
 	constructor({
 		name,
 		url,
@@ -40,79 +42,87 @@ export class Sound extends PositionalAudio {
 	}) {
 		super(listener);
 		this.name = name;
+		this.bufferLoaded = false;
 		// this.socket = getSocket({
 		// 	type: 'DESKTOP',
 		// 	userId: getUser().id
 		// });
 		this.socket = socket;
-		this.loadBufferFromStream();
-		this.loadBuffer({ url });
+		this.url = url;
+		this.loadBuffer();
+		// this.loadBufferFromStream();
+		// this.loadBuffer({ url });
 
 		// this.connection.socket?.on('audio buffer', (buffer: any) => {
 		// 	console.log(buffer);
 		// });
 	}
 
-	private loadBufferFromStream = () => {
-		const sampleRate = 4800;
-		const context = new AudioContext();
-		let startAt = 0;
-
-		// this.connection.socket?.on('audio buffer', (chunk) => {
-		// 	const floats = new Float32Array(chunk);
-
-		// 	console.log(floats);
-		// 	// const source = context.createBufferSource();
-		// 	// const buffer = context.createBuffer(1, floats.length, sampleRate);
-		// 	// source.buffer = buffer;
-
-		// 	// super.setBuffer(buffer);
-		// 	// source.connect(context.destination);
-		// 	// startAt = Math.max(context.currentTime, startAt);
-		// 	// source.start();
-		// 	// startAt += buffer.duration;
-		// });
-	};
-	public loadBuffer = async ({ url }: { url: string }) => {
-		// const socket = await getSocket({
-		// 	type: 'DESKTOP',
-		// 	userId: getUser().id
-		// });
+	public loadBuffer = async () => {
+		const bufferLoadedEvent = new Event('buffer loaded');
 
 		const audioLoader = new THREE.AudioLoader();
 
-		const buildURL = `https://dax.michaelpalladino.io/assets/sounds/${url}`;
+		const buildURL = `https://dax.michaelpalladino.io/assets/sounds/${this.url}`;
 
-		audioLoader.load(buildURL, (loadedBuffer) => {
-			super.setBuffer(loadedBuffer);
-
-			// const context = new AudioContext();
-			// const streamDest = context.createMediaStreamDestination();
-			// const source = context.createBufferSource();
-
-			// source.buffer = loadedBuffer;
-			// source.connect(streamDest);
-			// source.loop = false;
-
-			// super.setMediaStreamSource(streamDest.stream);
-			// super.source = source;
-
-			// socket.on('start sound', (at: number) => {
-			// 	if (this.isPlaying) return;
-			// 	if (!this.isPlaying) {
-			// 		this.source?.start(0, at);
-			// 	}
-			// });
-
-			this.setBuffer(loadedBuffer);
-			this.socket.on('start sound', (at: number) => {
-				this.play();
-				// if (this.isPlaying) return;
-
-				// this.source?.start(0, at);
-				// this.play();
-			});
+		const buffer = await audioLoader.loadAsync(buildURL, (state) => {
+			console.log(state.loaded);
 		});
+
+		console.log('[Dax] Buffer loaded.');
+
+		super.setBuffer(buffer);
+		this.socket.emit('buffer loaded', true);
+		this.bufferLoaded = true;
+
+		dispatchEvent(bufferLoadedEvent);
+
+		this.setBuffer(buffer);
+		this.socket.on('start sound', (at: number) => {
+			this.play();
+			// if (this.isPlaying) return;
+
+			// this.source?.start(0, at);
+			// this.play();
+		});
+		return true;
+
+		// audioLoader.load(buildURL, (loadedBuffer) => {
+		// 	super.setBuffer(loadedBuffer);
+		// 	console.log('[Dax] Buffer loaded.');
+
+		// 	this.socket.emit('buffer loaded', true);
+		// 	this.bufferLoaded = true;
+
+		// 	this.setBuffer(loadedBuffer);
+		// 	this.socket.on('start sound', (at: number) => {
+		// 		this.play();
+		// 		// if (this.isPlaying) return;
+
+		// 		// this.source?.start(0, at);
+		// 		// this.play();
+		// 	});
+
+		// 	return true;
+
+		// 	// const context = new AudioContext();
+		// 	// const streamDest = context.createMediaStreamDestination();
+		// 	// const source = context.createBufferSource();
+
+		// 	// source.buffer = loadedBuffer;
+		// 	// source.connect(streamDest);
+		// 	// source.loop = false;
+
+		// 	// super.setMediaStreamSource(streamDest.stream);
+		// 	// super.source = source;
+
+		// 	// socket.on('start sound', (at: number) => {
+		// 	// 	if (this.isPlaying) return;
+		// 	// 	if (!this.isPlaying) {
+		// 	// 		this.source?.start(0, at);
+		// 	// 	}
+		// 	// });
+		// });
 	};
 
 	public playAt({ time }: { time: number }) {
