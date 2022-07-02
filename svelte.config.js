@@ -14,7 +14,8 @@ const config = {
 			build: {
 				rollupOptions: {
 					external: [
-						"@sentry/browser"
+						"@sentry/browser",
+						"@sentry/tracing"
 					]
 				}
 			}
