@@ -248,8 +248,8 @@ export class Space {
 		});
 
 		const sound = this.coordinator.add({
-			name: 'alright',
-			url: 'alright.mp3'
+			name: 'streetcar',
+			url: 'streetcar.mp3'
 		});
 
 		// this.scene.add(sound);
