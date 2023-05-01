@@ -159,7 +159,7 @@
 
 					{#if !fingerOnScreen}
 						<div class="neon">Rest thumb on phone screen</div>
-						<h5 style="color: white">Now Playing "Alright" by Travis Scott</h5>
+						<h5 style="color: white">Now Playing "Streetcar" by Daniel Caesar</h5>
 					{/if}
 				{/if}
 				{#if !finishedCountdown}
